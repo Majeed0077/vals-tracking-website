@@ -1,0 +1,985 @@
+/* ============= GLOBAL ============= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Poppins", system-ui, sans-serif;
+  background: #05070c;
+  color: #f5f6ff;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ============= HEADER ============= */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(5, 7, 12, 0.96);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0;
+}
+
+.logo {
+  height: 50px;
+  width: auto;
+}
+
+.nav {
+  display: flex;
+  gap: 32px;
+}
+
+.nav-link {
+  position: relative;
+  text-decoration: none;
+  color: rgba(140, 142, 165, 0.75);
+  font-size: 0.96rem;
+  font-weight: 500;
+  padding: 6px 0;
+  transition: color 0.25s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: #ffffff;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0%;
+  height: 2px;
+  background: #ff2539;
+  box-shadow: 0 0 8px #ff2539;
+  transition: width 0.25s ease;
+  border-radius: 5px;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* ============= HERO ============= */
+
+.hero {
+  position: relative;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+
+  /* Trucks as full banner background */
+background-image:
+  linear-gradient(to right,
+    rgba(5, 7, 12, 0.95) 0%,
+    rgba(5, 7, 12, 0.85) 30%,
+    rgba(5, 7, 12, 0.40) 60%,
+    rgba(5, 7, 12, 0.95) 100%
+  ),
+  url("/images/hero-trucks.png");
+
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+}
+
+/* hero ke andar container thoda wide */
+.hero .container {
+  max-width: 1280px;
+  padding: 0 40px;
+}
+
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;  /* left text + right dashboard */
+  gap: 30px;
+  align-items: center;
+}
+
+/* LEFT TEXT */
+.hero-title {
+  font-size: clamp(2.6rem, 4vw, 3.4rem);
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  margin: 0 0 30px;
+}
+.hero-subtitle {
+  font-size: 0.98rem;
+  color: rgba(222, 228, 255, 0.9);
+  max-width: 430px;
+  margin: 0 0 26px;
+}
+/* Buttons – same as before */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 26px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.96rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.18s ease,
+              background 0.18s ease, border-color 0.18s ease;
+}
+
+.btn-primary {
+  background: #ff2539;
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(255, 37, 57, 0.45);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 38px rgba(255, 37, 57, 0.6);
+}
+
+/* ============= HERO MEDIA (dashboard tablet only) ============= */
+
+.hero-media {
+  position: relative;
+  height: 300px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+/* front tablet – bada aur trucks ke upar */
+.hero-dashboard-card {
+  position: relative;
+  width: 100%;          /* bada tablet */
+  max-width: 720px;
+  border-radius: 26px;
+  background: #05070b;
+  padding: 10px;
+  margin-bottom: -50px;
+  box-shadow:
+    0 30px 170px rgba(0, 0, 0, 0.95),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.hero-dashboard {
+  display: block;
+  width: 100%;
+  border-radius: 20px;
+}
+
+/* ============= WHY CHOOSE US ============= */
+
+/* ============= WHY CHOOSE US (Advanced) ============= */
+
+.why {
+  padding: 56px 0;
+  position: relative;
+}
+
+.why::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at top left,
+    rgba(255, 37, 57, 0.14),
+    transparent 55%
+  );
+  opacity: 0.7;
+  z-index: -1;
+}
+
+/* title + small accent bar underneath */
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title::after {
+  content: "";
+  width: 60px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff2539, rgba(255, 255, 255, 0));
+  opacity: 0.9;
+}
+
+/* grid instead of plain flex for better responsiveness */
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+/* each "Why" item as a small glass card */
+.why-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 14px 16px;
+  border-radius: 14px;
+  background: radial-gradient(circle at top left, #141824, #070913);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(10, 12, 20, 0.7);
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+.why-item::before {
+  content: "";
+  position: absolute;
+  inset: -60%;
+  background: radial-gradient(
+    circle at top,
+    rgba(255, 37, 57, 0.12),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.why-item:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 37, 57, 0.65);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.9),
+    0 0 22px rgba(255, 37, 57, 0.32);
+}
+
+.why-item:hover::before {
+  opacity: 1;
+}
+
+/* tick icon – make it more futuristic + glowy */
+.tick {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 37, 57, 0.95);
+  position: relative;
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(255, 37, 57, 0.35);
+  background: radial-gradient(circle at 30% 30%, #ff697a, #3a0810);
+}
+
+.tick::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, #ffecef, #ff7a8a);
+  opacity: 0.22;
+}
+
+.tick::after {
+  content: "";
+  position: relative;
+  width: 7px;
+  height: 10px;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: translateY(-1px) rotate(42deg);
+}
+
+/* text block inside each why item */
+.why-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.why-title {
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.why-sub {
+  font-size: 0.8rem;
+  margin-top: 3px;
+  color: rgba(223, 228, 249, 0.7);
+}
+
+/* ============= RESPONSIVE TWEAKS ============= */
+
+
+/* ============= SERVICES ============= */
+
+.services {
+  padding: 12px 0 46px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.card {
+  background: #10131c;
+  border-radius: 18px;
+  padding: 20px 18px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+
+.card-icon {
+  margin-bottom: 10px;
+}
+
+.icon-square,
+.icon-triangle,
+.icon-rect,
+.icon-cold {
+  display: inline-block;
+  border-radius: 10px;
+  border: 1.5px solid #ff2539;
+}
+
+/* simple abstract icon shapes */
+.icon-square {
+  width: 20px; height: 20px;
+}
+.icon-triangle {
+  width: 0; height: 0;
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-bottom: 20px solid #ff2539;
+  border-radius: 3px;
+}
+.icon-rect {
+  width: 26px; height: 14px;
+}
+.icon-cold {
+  width: 18px; height: 24px;
+}
+
+.card-title {
+  font-size: 1rem;
+  margin: 8px 0 6px;
+}
+
+.card-text {
+  font-size: 0.86rem;
+  color: rgba(214, 220, 243, 0.86);
+  margin: 0 0 10px;
+}
+
+.card-link {
+  font-size: 0.86rem;
+  color: #ff2539;
+  text-decoration: none;
+}
+.card-icon svg {
+  width: 40px;
+  height: 40px;
+  stroke: #ff2539;
+  margin-bottom: 12px;
+}
+
+/* ============= PLANS / PRICING ============= */
+
+.plans {
+  padding: 40px 0 70px;
+}
+
+.plans-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 2.9fr);
+  gap: 40px;
+  align-items: stretch;
+}
+
+/* left column: title top, text lower (like screenshot) */
+.plans-intro {
+  display: flex;
+  flex-direction: column;
+}
+
+.plans-intro .section-title {
+  margin-bottom: 24px;
+}
+
+.plans-text {
+  font-size: 0.9rem;
+  color: rgba(214, 220, 243, 0.86);
+  max-width: 230px;
+  margin-top: auto;       /* pushes text towards bottom */
+}
+
+/* right column: pricing cards */
+
+.pricing-grid {
+  display: flex;
+  gap: 20px;
+}
+
+.price-card {
+  flex: 1;
+  background: #10131d;
+  border-radius: 18px;
+  padding: 20px 20px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+}
+
+.price-card-highlight {
+  border-color: #ff2539;
+}
+
+.price-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.price-value {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: rgba(214, 220, 243, 0.9);
+}
+
+.price-value span {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.price-period {
+  font-size: 0.78rem;
+  color: rgba(214, 220, 243, 0.8);
+  margin-left: 3px;
+}
+
+/* checklist with red ticks */
+
+.price-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  font-size: 0.86rem;
+  color: rgba(214, 220, 243, 0.9);
+}
+
+.price-list li {
+  position: relative;
+  padding-left: 20px;
+}
+
+.price-list li + li {
+  margin-top: 4px;
+}
+
+.price-list li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid #ff2539;
+  border-bottom: 2px solid #ff2539;
+  transform: rotate(45deg);
+}
+
+/* full-width red button at bottom */
+
+.price-btn {
+  margin-top: auto;          /* push button to bottom */
+  align-self: stretch;
+  justify-content: center;
+  width: 100%;
+}
+
+/* ============= FOOTER ============= */
+
+.site-footer {
+  background: #05070b;
+  padding: 40px 0 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.footer-inner {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(4, 1fr);
+  gap: 40px;
+  align-items: flex-start;
+  padding: 20px 0;
+}
+
+.footer-logo {
+  height: 48px;
+  width: auto;
+}
+
+/* Column titles */
+.footer-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #f5f6ff;
+}
+
+/* Footer links */
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 6px;
+  font-size: 0.84rem;
+  color: rgba(220, 225, 240, 0.75);
+}
+
+.footer-links a {
+  color: rgba(220, 225, 240, 0.75);
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Newsletter */
+.newsletter-form {
+  display: flex;
+  gap: 8px;
+}
+
+.newsletter-input {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0b0e15;
+  color: #fff;
+  font-size: 0.84rem;
+  width: 150px;
+}
+
+.newsletter-btn {
+  padding: 8px 16px;
+  background: #1a1d24;
+  color: #fff;
+  font-size: 0.84rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.newsletter-btn:hover {
+  background: #22252e;
+}
+
+/* Footer Bottom */
+.footer-bottom {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.footer-bottom-inner {
+  font-size: 0.78rem;
+  color: rgba(174, 183, 214, 0.85);
+}
+
+/* ============= INNER PAGES ============= */
+
+/* common inner hero (page title area) */
+.page-hero {
+  padding: 70px 0 40px;
+  background: radial-gradient(circle at top, #151822 0, #05070c 65%, #020308 100%);
+}
+
+.page-hero .container {
+  max-width: 1160px;
+}
+
+.page-hero-title {
+  font-size: 2rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 10px;
+}
+
+.page-hero-subtitle {
+  font-size: 0.9rem;
+  color: rgba(220, 226, 250, 0.8);
+  max-width: 520px;
+}
+
+/* reusable section spacing */
+.section-block {
+  padding: 32px 0 56px;
+}
+
+/* SERVICES PAGE DETAIL */
+
+.services-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.service-detail-card {
+  background: #0c0f18;
+  border-radius: 16px;
+  padding: 18px 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.65);
+}
+
+.service-detail-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.service-detail-text {
+  font-size: 0.86rem;
+  color: rgba(214, 220, 243, 0.86);
+}
+
+/* PACKAGES PAGE – reuse pricing cards */
+
+.packages-note {
+  font-size: 0.86rem;
+  color: rgba(210, 218, 245, 0.8);
+  margin-bottom: 18px;
+}
+
+/* ABOUT PAGE */
+
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.about-text {
+  font-size: 0.9rem;
+  color: rgba(214, 220, 243, 0.88);
+}
+
+.about-list {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+  font-size: 0.88rem;
+  color: rgba(220, 226, 250, 0.9);
+}
+
+.about-list li + li {
+  margin-top: 6px;
+}
+
+.about-stat-box {
+  background: #0c0f17;
+  border-radius: 16px;
+  padding: 18px 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.about-stat-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(204, 214, 244, 0.7);
+}
+
+.about-stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+/* CONTACT PAGE */
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.3fr);
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.contact-info {
+  font-size: 0.9rem;
+  color: rgba(214, 220, 243, 0.9);
+}
+
+.contact-info p {
+  margin: 0 0 10px;
+}
+
+.contact-info a {
+  color: #ff2539;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.contact-info a:hover {
+  text-decoration: underline;
+}
+
+.contact-form {
+  background: #0b0f17;
+  border-radius: 16px;
+  padding: 18px 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.contact-form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.contact-label {
+  display: block;
+  font-size: 0.78rem;
+  margin-bottom: 4px;
+  color: rgba(200, 210, 242, 0.85);
+}
+
+.contact-input,
+.contact-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #05070c;
+  color: #f7f7ff;
+  font-family: inherit;
+  font-size: 0.86rem;
+}
+
+.contact-textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.contact-submit {
+  margin-top: 8px;
+  padding-inline: 22px;
+}
+
+/* RESPONSIVE for inner pages */
+
+@media (max-width: 1024px) {
+  .services-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contact-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .services-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contact-form-row {
+    flex-direction: column;
+  }
+
+  .page-hero {
+    padding: 56px 0 30px;
+  }
+
+  .page-hero-title {
+    font-size: 1.6rem;
+  }
+}
+
+
+/* ============= RESPONSIVE ============= */
+
+/* ================= Tablets & small laptops (<= 1024px) ================= */
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 20px;
+  }
+
+  .hero {
+    min-height: auto;
+    padding: 60px 0 40px;
+  }
+
+  .hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 32px;
+  }
+
+  .hero-media {
+    order: -1;
+    justify-content: center;
+    height: auto;
+  }
+
+  .hero-dashboard-card {
+    max-width: 520px;
+    width: 100%;
+  }
+
+  .plans-inner {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 32px;
+  }
+
+  .pricing-grid {
+    flex-wrap: wrap;
+  }
+
+  .price-card {
+    min-width: 240px;
+  }
+
+  .footer-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 24px;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ================= WHY Section Tablet (<= 960px) ================= */
+@media (max-width: 960px) {
+  .why-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ================= WHY Section Mobile (<= 600px) ================= */
+@media (max-width: 600px) {
+  .why {
+    padding: 36px 0;
+  }
+
+  .why-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .why-item {
+    padding: 12px 12px 14px;
+  }
+}
+
+/* ================= Phones (<= 768px) ================= */
+@media (max-width: 768px) {
+  .header-inner {
+    padding: 14px 0;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .hero {
+    padding: 40px 0 32px;
+  }
+
+  .hero .container {
+    padding: 0 16px;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+    letter-spacing: 0.08em;
+  }
+
+  .hero-media {
+    margin-top: 10px;
+  }
+
+  .cards-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .plans-inner {
+    gap: 24px;
+  }
+
+  .pricing-grid {
+    flex-direction: column;
+  }
+
+  .price-card {
+    min-width: 0;
+  }
+
+  .plans-text {
+    margin-top: 8px;
+  }
+
+  .footer-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .newsletter-form {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .newsletter-input {
+    width: 100%;
+  }
+}
