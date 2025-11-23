@@ -17,7 +17,6 @@ export default function Footer() {
                         className="logo"
                     />
                 </div>
-
                 {/* Services */}
                 <div className="footer-column">
                     <h4 className="footer-title">Services</h4>
@@ -51,12 +50,22 @@ export default function Footer() {
                 </div>
 
                 {/* Contact */}
-                <div className="footer-column">
+                <div className="footer-column contact-column">
                     <h4 className="footer-title">Contact</h4>
-                    <ul className="footer-links">
-                        <li>+27 133 486 760</li>
-                        <li>+28 123 235 7360</li>
-                    </ul>
+
+                    <div className="footer-contact">
+                        <p className="footer-contact-item">
+                            📞 <a href="tel:+27133486760">+27 133 486 760</a>
+                        </p>
+
+                        <p className="footer-contact-item">
+                            📍 NASTP Karachi
+                        </p>
+
+                        <p className="footer-contact-item">
+                            ✉️ <a href="mailto:info@valstracking.com">info@valstracking.com</a>
+                        </p>
+                    </div>
                 </div>
 
                 {/* Newsletter */}
