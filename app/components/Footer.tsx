@@ -48,7 +48,6 @@ export default function Footer() {
                         </li>
                     </ul>
                 </div>
-
                 {/* Contact */}
                 <div className="footer-column contact-column">
                     <h4 className="footer-title">Contact</h4>
@@ -63,11 +62,10 @@ export default function Footer() {
                         </p>
 
                         <p className="footer-contact-item">
-                            ✉️ <a href="mailto:info@valstracking.com">info@valstracking.com</a>
+                            ✉️ <a href="mailto:info@valstracking.com">Our Gmail</a>
                         </p>
                     </div>
                 </div>
-
                 {/* Newsletter */}
                 <div className="footer-column">
                     <h4 className="footer-title">Newsletter</h4>
@@ -83,7 +81,6 @@ export default function Footer() {
                     </form>
                 </div>
             </div>
-
             <div className="footer-bottom">
                 <div className="container footer-bottom-inner">
                     © <span>{year}</span> Vals Tracking Pvt Ltd. All rights reserved.
