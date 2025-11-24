@@ -112,6 +112,110 @@ body {
   opacity: 1;
 }
 
+/* ===== MEGA MENU (Services) ===== */
+
+.nav {
+  display: flex;
+  gap: 32px;
+  position: relative; /* keep existing behaviour + allow absolute children */
+}
+
+.nav-item-wrapper {
+  position: relative;
+}
+
+/* Mega dropdown container */
+.mega-menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, 14px);
+  width: 100vw;
+  max-width: 1160px; /* matches .container max-width */
+  padding: 28px 32px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, #151822 0, #05070c 60%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(10, 12, 20, 0.8);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+  z-index: 80;
+}
+
+/* Show mega menu when hovering the Services item (desktop only) */
+.nav-item-wrapper:hover .mega-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 20px);
+}
+
+/* Inner grid (4 columns like your screenshot) */
+.mega-inner {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px;
+}
+
+/* Column heading */
+.mega-col h4 {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 0 0 12px;
+  color: #ff2539;
+}
+
+/* Links */
+.mega-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mega-col li + li {
+  margin-top: 6px;
+}
+
+.mega-col a {
+  position: relative;            /* REQUIRED so ::after can position correctly */
+  display: inline-block;         /* REQUIRED so underline aligns properly */
+  font-size: 0.86rem;
+  color: rgba(223, 228, 249, 0.9);
+  text-decoration: none;
+  transition: color 0.18s ease, transform 0.16s ease;
+}
+
+.mega-col a::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;                  /* Slightly closer for compact menu */
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(90deg, #ff2539, #ff5565);
+  border-radius: 6px;
+  transform: translateX(-50%);
+  box-shadow: 0 0 8px rgba(255, 37, 57, 0.8);
+  transition: width 0.25s ease, opacity 0.25s ease;
+  opacity: 0;
+}
+
+.mega-col a:hover {
+  color: #ffffff;
+  transform: translateX(3px);
+}
+
+.mega-col a:hover::after {
+  width: 100%;
+  opacity: 1;
+}
 
 /* ============= HERO ============= */
 
@@ -1108,5 +1212,20 @@ background-repeat: no-repeat;
 
   .newsletter-input {
     width: 100%;
+  }
+}
+
+/* Optional: hide mega menu entirely on mobile (nav already hidden) */
+@media (max-width: 768px) {
+  .mega-menu {
+    display: none;
+  }
+}
+
+/* Optional: slightly more compact on medium screens */
+@media (max-width: 1024px) {
+  .mega-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 20px;
   }
 }
