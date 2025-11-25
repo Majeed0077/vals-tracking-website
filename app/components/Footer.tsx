@@ -54,11 +54,11 @@ export default function Footer() {
 
                     <div className="footer-contact">
                         <p className="footer-contact-item">
-                            📞 <a href="tel:+27133486760">+27 133 486 760</a>
+                            📞 <a href="tel:+923 111 10 10 66">+923 111 10 10 66</a>
                         </p>
 
                         <p className="footer-contact-item">
-                            📍 NASTP Karachi
+                            📍 V4P9+9G3,National Aerospace science and technology park (Nastp), Faisal Cantonment, Karachi, Karachi City, Sindh
                         </p>
 
                         <p className="footer-contact-item">

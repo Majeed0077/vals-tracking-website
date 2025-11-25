@@ -70,6 +70,10 @@ body {
   display: flex;
   gap: 32px;
 }
+.nav .theme-toggle {
+  margin-left: 16px;
+}
+
 
 /* ==== NAV LINKS ==== */
 
@@ -324,11 +328,7 @@ background-repeat: no-repeat;
   width: 100%;
   border-radius: 20px;
 }
-
 /* ============= WHY CHOOSE US ============= */
-
-/* ============= WHY CHOOSE US (Advanced) ============= */
-
 .why {
   padding: 56px 0;
   position: relative;
@@ -473,11 +473,7 @@ background-repeat: no-repeat;
   color: rgba(223, 228, 249, 0.7);
 }
 
-/* ============= RESPONSIVE TWEAKS ============= */
-
-
 /* ============= SERVICES ============= */
-
 .services {
   padding: 12px 0 46px;
 }
@@ -549,9 +545,7 @@ background-repeat: no-repeat;
   stroke: #ff2539;
   margin-bottom: 12px;
 }
-
 /* ============= PLANS / PRICING ============= */
-
 .plans {
   padding: 40px 0 70px;
 }
@@ -562,7 +556,6 @@ background-repeat: no-repeat;
   gap: 40px;
   align-items: stretch;
 }
-
 /* left column: title top, text lower (like screenshot) */
 .plans-intro {
   display: flex;
@@ -579,9 +572,7 @@ background-repeat: no-repeat;
   max-width: 230px;
   margin-top: auto;       /* pushes text towards bottom */
 }
-
 /* right column: pricing cards */
-
 .pricing-grid {
   display: flex;
   gap: 20px;
@@ -863,10 +854,8 @@ background-repeat: no-repeat;
   text-align: center;
 }
 
-
 /* ============= INNER PAGES ============= */
 
-/* common inner hero (page title area) */
 .page-hero {
   padding: 70px 0 40px;
   background: radial-gradient(circle at top, #151822 0, #05070c 65%, #020308 100%);
@@ -1077,10 +1066,6 @@ background-repeat: no-repeat;
     font-size: 1.6rem;
   }
 }
-
-
-/* ============= RESPONSIVE ============= */
-
 /* ================= Tablets & small laptops (<= 1024px) ================= */
 @media (max-width: 1024px) {
   .container {
@@ -1130,6 +1115,163 @@ background-repeat: no-repeat;
     grid-column: 1 / -1;
   }
 }
+/* =========================================================
+   LIGHT THEME OVERRIDES
+   html[data-theme="light"] is set from Header.tsx
+   ======================================================= */
+
+html[data-theme="light"] body {
+  background: #f3f4ff;
+  color: #020617;
+}
+
+/* HEADER + NAV */
+html[data-theme="light"] .header {
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="light"] .header.scrolled {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.16);
+}
+
+html[data-theme="light"] .nav-link {
+  color: rgba(71, 85, 105, 0.95);
+}
+
+html[data-theme="light"] .nav-link:hover,
+html[data-theme="light"] .nav-link.active {
+  color: #020617;
+}
+
+/* HERO */
+html[data-theme="light"] .hero {
+  background-image: none;
+  background: radial-gradient(circle at top, #e5e7ff 0, #f5f6ff 55%, #e2e8f0 100%);
+}
+
+html[data-theme="light"] .hero-title {
+  color: #020617;
+}
+
+html[data-theme="light"] .hero-subtitle {
+  color: #4b5563;
+}
+
+/* SECTION TITLES */
+html[data-theme="light"] .section-title {
+  color: #020617;
+}
+
+/* WHY CHOOSE US */
+html[data-theme="light"] .why {
+  background: linear-gradient(to bottom, #fee2e2 0, #eef2ff 40%, #eef2ff 100%);
+}
+
+html[data-theme="light"] .why-item {
+  background: #ffffff;
+  border-color: rgba(148, 163, 184, 0.35);
+  box-shadow: 0 12px 26px rgba(148, 163, 184, 0.35);
+}
+
+html[data-theme="light"] .why-title {
+  color: #020617;
+}
+
+html[data-theme="light"] .why-sub {
+  color: #4b5563;
+}
+
+/* CARDS (services, pricing, service-detail, etc.) */
+html[data-theme="light"] .card,
+html[data-theme="light"] .price-card,
+html[data-theme="light"] .service-detail-card,
+html[data-theme="light"] .about-stat-box,
+html[data-theme="light"] .contact-form {
+  background: #ffffff;
+  border-color: rgba(148, 163, 184, 0.25);
+  box-shadow: 0 14px 32px rgba(148, 163, 184, 0.35);
+}
+
+html[data-theme="light"] .card-title,
+html[data-theme="light"] .service-detail-title,
+html[data-theme="light"] .price-name {
+  color: #020617;
+}
+
+html[data-theme="light"] .card-text,
+html[data-theme="light"] .service-detail-text,
+html[data-theme="light"] .price-value,
+html[data-theme="light"] .price-period,
+html[data-theme="light"] .price-list li,
+html[data-theme="light"] .plans-text,
+html[data-theme="light"] .about-text,
+html[data-theme="light"] .contact-info {
+  color: #4b5563;
+}
+
+/* HERO / CTA BUTTONS stay red, so no change needed */
+
+/* FOOTER */
+html[data-theme="light"] .site-footer {
+  background: radial-gradient(circle at top, #e5e7ff 0, #f3f4ff 55%, #e2e8f0 100%);
+  border-top-color: rgba(148, 163, 184, 0.5);
+}
+
+html[data-theme="light"] .footer-title {
+  color: #020617;
+}
+
+html[data-theme="light"] .footer-links li {
+  color: #4b5563;
+}
+
+html[data-theme="light"] .footer-links a {
+  color: #475569;
+}
+
+html[data-theme="light"] .footer-links a:hover {
+  color: #020617;
+}
+
+html[data-theme="light"] .footer-contact-item {
+  color: #1f2933;
+}
+
+html[data-theme="light"] .contact-column {
+  background: #ffffff;
+  border-color: rgba(148, 163, 184, 0.6);
+  box-shadow: 0 18px 40px rgba(148, 163, 184, 0.45);
+}
+
+html[data-theme="light"] .footer-bottom-inner {
+  color: #6b7280;
+}
+
+/* MEGA MENU in light mode */
+html[data-theme="light"] .mega-menu {
+  background: radial-gradient(circle at top left, #eef2ff 0, #ffffff 60%);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+html[data-theme="light"] .mega-col h4 {
+  color: #b91c1c;
+}
+
+html[data-theme="light"] .mega-col a {
+  color: #374151;
+}
+
+/* THEME TOGGLE LOOK IN LIGHT MODE */
+html[data-theme="light"] .theme-toggle {
+  background: #e5e7f5;
+  border-color: rgba(148, 163, 184, 0.8);
+  color: #020617;
+}
+
+
 
 /* ================= WHY Section Tablet (<= 960px) ================= */
 @media (max-width: 960px) {
@@ -1152,7 +1294,6 @@ background-repeat: no-repeat;
     padding: 12px 12px 14px;
   }
 }
-
 /* ================= Phones (<= 768px) ================= */
 @media (max-width: 768px) {
   .header-inner {

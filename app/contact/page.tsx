@@ -17,9 +17,9 @@ export default function ContactPage() {
               <p>
                 <strong>Phone</strong>
                 <br />
-                +27 133 486 760
+               +923 111 10 10 66
                 <br />
-                +28 123 235 7360
+                +923 111 10 10 66
               </p>
               <p>
                 <strong>Email</strong>
@@ -31,7 +31,7 @@ export default function ContactPage() {
               <p>
                 <strong>Office</strong>
                 <br />
-                Karachi, Pakistan
+                V4P9+9G3,National Aerospace science and technology park (Nastp), Faisal Cantonment, Karachi, Karachi City, Sindh
               </p>
             </div>
 

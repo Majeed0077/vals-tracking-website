@@ -4,7 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -51,12 +51,46 @@ const navItems = [
   { href: "/packages", label: "Packages" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
-  { href: "/login", label: "Login" },
+  // { href: "/login", label: "Login" },
 ];
 
 export default function Header() {
   const pathname = usePathname();
 
+  // THEME STATE
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
+  // Initialize theme from localStorage / system
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const stored = window.localStorage.getItem("vals-theme") as
+      | "dark"
+      | "light"
+      | null;
+
+    const prefersDark =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    const initialTheme = stored ?? (prefersDark ? "dark" : "light");
+
+    setTheme(initialTheme);
+    document.documentElement.setAttribute("data-theme", initialTheme);
+  }, []);
+
+  // Apply theme when it changes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    document.documentElement.setAttribute("data-theme", theme);
+    window.localStorage.setItem("vals-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
+  // HEADER SCROLL EFFECT
   useEffect(() => {
     const header = document.querySelector<HTMLElement>(".header");
     if (!header) return;
@@ -90,46 +124,63 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Desktop nav (mobile is hidden via CSS) */}
-        <nav className="nav">
-          {navItems.map((item) => {
-            const isActive =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
+        <div className="header-right">
+          {/* Desktop nav (mobile is hidden via CSS) */}
+          <nav className="nav">
+            {navItems.map((item) => {
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.href);
 
-            return (
-              <div key={item.href} className="nav-item-wrapper">
-                <Link
-                  href={item.href}
-                  className={`nav-link ${isActive ? "active" : ""}`}
-                >
-                  {item.label}
-                </Link>
+              return (
+                <div key={item.href} className="nav-item-wrapper">
+                  <Link
+                    href={item.href}
+                    className={`nav-link ${isActive ? "active" : ""}`}
+                  >
+                    {item.label}
+                  </Link>
 
-                {/* Mega menu only for items with mega: true (Services) */}
-                {item.mega && (
-                  <div className="mega-menu">
-                    <div className="mega-inner">
-                      {item.columns.map((col, index) => (
-                        <div className="mega-col" key={index}>
-                          <h4>{col.heading}</h4>
-                          <ul>
-                            {col.links.map((link) => (
-                              <li key={link.href}>
-                                <Link href={link.href}>{link.label}</Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                  {item.mega && (
+                    <div className="mega-menu">
+                      <div className="mega-inner">
+                        {item.columns.map((col, index) => (
+                          <div className="mega-col" key={index}>
+                            <h4>{col.heading}</h4>
+                            <ul>
+                              {col.links.map((link) => (
+                                <li key={link.href}>
+                                  <Link href={link.href}>{link.label}</Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </nav>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* THEME TOGGLE BUTTON HERE (AFTER CONTACT) */}
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={toggleTheme}
+              aria-label="Toggle dark/light theme"
+            >
+              <span className="theme-toggle-icon">
+                {theme === "dark" ? "☀️" : "🌙"}
+              </span>
+              <span className="theme-toggle-label">
+                {theme === "dark" ? "Light" : "Dark"}
+              </span>
+            </button>
+          </nav>
+
+        </div>
       </div>
     </header>
   );
