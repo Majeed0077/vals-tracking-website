@@ -74,55 +74,59 @@ body {
   margin-left: 16px;
 }
 /* ===== THEME TOGGLE (NAV) ===== */
+/* ===== THEME SWITCH (iOS style) ===== */
 
-.theme-toggle {
-  margin-left: 20px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: radial-gradient(circle at top left, #ff4757 0%, #b91c1c 40%, #05070c 100%);
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.75);
-  outline: none;
-  border-width: 1px;
-  appearance: none;
-  background-clip: padding-box;
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    border-color 0.18s ease,
-    opacity 0.18s ease;
-}
-
-.theme-toggle:hover {
-  transform: translateY(-1px);
-  border-color: #ff7b8b;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.9);
-}
-
-.theme-toggle-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  background: radial-gradient(circle at 30% 30%, #ffe4ea, #ff8ea0);
-  box-shadow: 0 0 7px rgba(245, 162, 170, 0.7);
-}
-
-.theme-toggle-label {
+.theme-switch {
   position: relative;
-  top: 0.5px;
+  margin-left: 20px;
+  width: 40px;
+  height: 22px;
+  padding: 2px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: #020617;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.theme-switch-knob {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+  transform: translateX(0);
+  transition: transform 0.18s ease;
+}
+
+/* ON state (dark theme) – knob right side */
+.theme-switch--on {
+  background: #111827;
+  border-color: rgba(148, 163, 184, 0.9);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.8);
+}
+
+.theme-switch--on .theme-switch-knob {
+  transform: translateX(16px);
+}
+
+/* Light theme colors */
+html[data-theme="light"] .theme-switch {
+  background: #e5e7eb;
+  border-color: rgba(148, 163, 184, 0.9);
+  box-shadow: 0 2px 8px rgba(148, 163, 184, 0.6);
+}
+
+html[data-theme="light"] .theme-switch-knob {
+  background: #0f172a;
 }
 
 /* Light-mode look for the toggle itself */

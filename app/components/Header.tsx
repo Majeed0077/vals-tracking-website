@@ -51,16 +51,18 @@ const navItems = [
   { href: "/packages", label: "Packages" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
-  // { href: "/login", label: "Login" },
 ];
 
 export default function Header() {
   const pathname = usePathname();
 
+  // -------------------------------------------
   // THEME STATE
+  // -------------------------------------------
+
   const [theme, setTheme] = useState<"dark" | "light">("light");
 
-  // Initialize theme from localStorage / system
+  // Load theme on mount (NO DOM updates here)
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -76,12 +78,12 @@ export default function Header() {
     const initialTheme = stored ?? (prefersDark ? "dark" : "light");
 
     setTheme(initialTheme);
-    document.documentElement.setAttribute("data-theme", initialTheme);
   }, []);
 
-  // Apply theme when it changes
+  // Apply theme to DOM when theme changes
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     document.documentElement.setAttribute("data-theme", theme);
     window.localStorage.setItem("vals-theme", theme);
   }, [theme]);
@@ -90,17 +92,17 @@ export default function Header() {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
+  // -------------------------------------------
   // HEADER SCROLL EFFECT
+  // -------------------------------------------
+
   useEffect(() => {
     const header = document.querySelector<HTMLElement>(".header");
     if (!header) return;
 
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        header.classList.add("scrolled");
-      } else {
-        header.classList.remove("scrolled");
-      }
+      if (window.scrollY > 20) header.classList.add("scrolled");
+      else header.classList.remove("scrolled");
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -109,11 +111,13 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // logo 
-  const logoSrc = theme === "dark"
-    ? "/images/logo-light.png"
-    : "/images/logo-dark.png";
+  // -------------------------------------------
+  // DYNAMIC LOGO (dark mode = white logo, light mode = black logo)
+  // -------------------------------------------
 
+  const logoSrc = theme === "dark"
+    ? "/images/logo-light.png" // white version
+    : "/images/logo-dark.png"; // black version
   return (
     <header className="header">
       <div className="container header-inner">
@@ -123,7 +127,7 @@ export default function Header() {
               src={logoSrc}
               alt="Logo"
               width={1600}
-              height={48}
+              height={50}
               className="logo"
             />
           </Link>
@@ -168,19 +172,14 @@ export default function Header() {
               );
             })}
 
-            {/* THEME TOGGLE BUTTON HERE (AFTER CONTACT) */}
+            {/* iOS style theme switch after Contact */}
             <button
               type="button"
-              className="theme-toggle"
+              className={`theme-switch ${theme === "dark" ? "theme-switch--on" : ""}`}
               onClick={toggleTheme}
               aria-label="Toggle dark/light theme"
             >
-              <span className="theme-toggle-icon">
-                {/* {theme === "dark" ? "Dark" : "Light"} */}
-              </span>
-              <span className="theme-toggle-label">
-                {theme === "dark" ? "Light" : "Dark"}
-              </span>
+              <span className="theme-switch-knob" />
             </button>
           </nav>
 
