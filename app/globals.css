@@ -6,7 +6,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
@@ -45,7 +46,7 @@ body {
 /* On scroll — darker and thinner */
 .header.scrolled {
   background: rgba(34, 38, 48, 0.75);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header-inner {
@@ -66,14 +67,13 @@ body {
   transform: scale(1.04);
 }
 
+/* NAV + THEME SWITCH */
 .nav {
   display: flex;
   gap: 32px;
+  position: relative; /* for mega menu positioning */
 }
-.nav .theme-toggle {
-  margin-left: 16px;
-}
-/* ===== THEME TOGGLE (NAV) ===== */
+
 /* ===== THEME SWITCH (iOS style) ===== */
 
 .theme-switch {
@@ -118,7 +118,12 @@ body {
   transform: translateX(16px);
 }
 
-/* Light theme colors */
+/* Focus outline for keyboard users */
+.theme-switch:focus-visible {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.8);
+}
+
+/* Light theme colors for switch */
 html[data-theme="light"] .theme-switch {
   background: #e5e7eb;
   border-color: rgba(148, 163, 184, 0.9);
@@ -128,20 +133,6 @@ html[data-theme="light"] .theme-switch {
 html[data-theme="light"] .theme-switch-knob {
   background: #0f172a;
 }
-
-/* Light-mode look for the toggle itself */
-html[data-theme="light"] .theme-toggle {
-  background: linear-gradient(90deg, #f97373, #fb7185);
-  border-color: rgba(248, 113, 113, 0.8);
-  color: #111827;
-  box-shadow: 0 12px 26px rgba(248, 113, 113, 0.5);
-}
-
-html[data-theme="light"] .theme-toggle-icon {
-  background: radial-gradient(circle at 30% 30%, #fff7e5, #fde68a);
-  box-shadow: 0 0 7px rgba(251, 191, 36, 0.8);
-}
-
 
 /* ==== NAV LINKS ==== */
 
@@ -186,12 +177,6 @@ html[data-theme="light"] .theme-toggle-icon {
 
 /* ===== MEGA MENU (Services) ===== */
 
-.nav {
-  display: flex;
-  gap: 32px;
-  position: relative; /* keep existing behaviour + allow absolute children */
-}
-
 .nav-item-wrapper {
   position: relative;
 }
@@ -206,8 +191,7 @@ html[data-theme="light"] .theme-toggle-icon {
   max-width: 1160px; /* matches .container max-width */
   padding: 28px 32px;
   border-radius: 18px;
-  background:
-    radial-gradient(circle at top left, #151822 0, #05070c 60%);
+  background: radial-gradient(circle at top left, #151822 0, #05070c 60%);
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow:
     0 22px 70px rgba(0, 0, 0, 0.9),
@@ -256,8 +240,8 @@ html[data-theme="light"] .theme-toggle-icon {
 }
 
 .mega-col a {
-  position: relative;            /* REQUIRED so ::after can position correctly */
-  display: inline-block;         /* REQUIRED so underline aligns properly */
+  position: relative;
+  display: inline-block;
   font-size: 0.86rem;
   color: rgba(223, 228, 249, 0.9);
   text-decoration: none;
@@ -268,7 +252,7 @@ html[data-theme="light"] .theme-toggle-icon {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -4px;                  /* Slightly closer for compact menu */
+  bottom: -4px;
   width: 0%;
   height: 2px;
   background: linear-gradient(90deg, #ff2539, #ff5565);
@@ -299,18 +283,18 @@ html[data-theme="light"] .theme-toggle-icon {
   overflow: hidden;
 
   /* Trucks as full banner background */
-background-image:
-  linear-gradient(to right,
-    rgba(5, 7, 12, 0.95) 0%,
-    rgba(5, 7, 12, 0.85) 30%,
-    rgba(5, 7, 12, 0.40) 60%,
-    rgba(5, 7, 12, 0.95) 100%
-  ),
-  url("/images/hero-trucks.png");
-
-background-size: cover;
-background-position: center;
-background-repeat: no-repeat;
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(5, 7, 12, 0.95) 0%,
+      rgba(5, 7, 12, 0.85) 30%,
+      rgba(5, 7, 12, 0.4) 60%,
+      rgba(5, 7, 12, 0.95) 100%
+    ),
+    url("/images/hero-trucks.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* hero ke andar container thoda wide */
@@ -321,7 +305,7 @@ background-repeat: no-repeat;
 
 .hero-inner {
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;  /* left text + right dashboard */
+  grid-template-columns: 1.05fr 0.95fr; /* left text + right dashboard */
   gap: 30px;
   align-items: center;
 }
@@ -331,15 +315,17 @@ background-repeat: no-repeat;
   font-size: clamp(2.6rem, 4vw, 3.4rem);
   line-height: 1.1;
   text-transform: uppercase;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   margin: 0 0 30px;
 }
+
 .hero-subtitle {
   font-size: 0.98rem;
   color: rgba(222, 228, 255, 0.9);
   max-width: 430px;
   margin: 0 0 26px;
 }
+
 /* Buttons – same as before */
 .btn {
   display: inline-flex;
@@ -352,8 +338,11 @@ background-repeat: no-repeat;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.18s ease,
-              background 0.18s ease, border-color 0.18s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .btn-primary {
@@ -380,7 +369,7 @@ background-repeat: no-repeat;
 /* front tablet – bada aur trucks ke upar */
 .hero-dashboard-card {
   position: relative;
-  width: 100%;          /* bada tablet */
+  width: 100%;
   max-width: 720px;
   border-radius: 26px;
   background: #05070b;
@@ -396,7 +385,9 @@ background-repeat: no-repeat;
   width: 100%;
   border-radius: 20px;
 }
+
 /* ============= WHY CHOOSE US ============= */
+
 .why {
   padding: 56px 0;
   position: relative;
@@ -542,6 +533,7 @@ background-repeat: no-repeat;
 }
 
 /* ============= SERVICES ============= */
+
 .services {
   padding: 12px 0 46px;
 }
@@ -575,20 +567,27 @@ background-repeat: no-repeat;
 
 /* simple abstract icon shapes */
 .icon-square {
-  width: 20px; height: 20px;
+  width: 20px;
+  height: 20px;
 }
+
 .icon-triangle {
-  width: 0; height: 0;
+  width: 0;
+  height: 0;
   border-left: 11px solid transparent;
   border-right: 11px solid transparent;
   border-bottom: 20px solid #ff2539;
   border-radius: 3px;
 }
+
 .icon-rect {
-  width: 26px; height: 14px;
+  width: 26px;
+  height: 14px;
 }
+
 .icon-cold {
-  width: 18px; height: 24px;
+  width: 18px;
+  height: 24px;
 }
 
 .card-title {
@@ -607,13 +606,16 @@ background-repeat: no-repeat;
   color: #ff2539;
   text-decoration: none;
 }
+
 .card-icon svg {
   width: 40px;
   height: 40px;
   stroke: #ff2539;
   margin-bottom: 12px;
 }
+
 /* ============= PLANS / PRICING ============= */
+
 .plans {
   padding: 40px 0 70px;
 }
@@ -624,6 +626,7 @@ background-repeat: no-repeat;
   gap: 40px;
   align-items: stretch;
 }
+
 /* left column: title top, text lower (like screenshot) */
 .plans-intro {
   display: flex;
@@ -638,9 +641,11 @@ background-repeat: no-repeat;
   font-size: 0.9rem;
   color: rgba(214, 220, 243, 0.86);
   max-width: 230px;
-  margin-top: auto;       /* pushes text towards bottom */
+  margin-top: auto; /* pushes text towards bottom */
 }
+
 /* right column: pricing cards */
+
 .pricing-grid {
   display: flex;
   gap: 20px;
@@ -719,13 +724,14 @@ background-repeat: no-repeat;
 /* full-width red button at bottom */
 
 .price-btn {
-  margin-top: auto;          /* push button to bottom */
+  margin-top: auto; /* push button to bottom */
   align-self: stretch;
   justify-content: center;
   width: 100%;
 }
 
 /* ============= FOOTER ============= */
+
 .site-footer {
   background: radial-gradient(circle at top, #101321 0, #05070b 55%, #020308 100%);
   padding: 40px 0 20px;
@@ -805,7 +811,10 @@ background-repeat: no-repeat;
 .footer-links a {
   color: rgba(220, 225, 240, 0.78);
   text-decoration: none;
-  transition: color 0.18s ease, opacity 0.18s ease, transform 0.16s ease;
+  transition:
+    color 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.16s ease;
 }
 
 .footer-links a:hover {
@@ -853,7 +862,10 @@ background-repeat: no-repeat;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: transform 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    color 0.18s ease,
+    opacity 0.18s ease;
 }
 
 .footer-contact-item:hover {
@@ -900,7 +912,10 @@ background-repeat: no-repeat;
   border-radius: 6px;
   border: none;
   cursor: pointer;
-  transition: background 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease;
+  transition:
+    background 0.18s ease,
+    transform 0.15s ease,
+    box-shadow 0.18s ease;
 }
 
 .newsletter-btn:hover {
@@ -1101,39 +1116,6 @@ background-repeat: no-repeat;
   padding-inline: 22px;
 }
 
-/* RESPONSIVE for inner pages */
-
-@media (max-width: 1024px) {
-  .services-detail-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .about-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .contact-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .services-detail-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .contact-form-row {
-    flex-direction: column;
-  }
-
-  .page-hero {
-    padding: 56px 0 30px;
-  }
-
-  .page-hero-title {
-    font-size: 1.6rem;
-  }
-}
 /* ================= Tablets & small laptops (<= 1024px) ================= */
 @media (max-width: 1024px) {
   .container {
@@ -1182,7 +1164,25 @@ background-repeat: no-repeat;
   .footer-brand {
     grid-column: 1 / -1;
   }
+
+  .services-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contact-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mega-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 20px;
+  }
 }
+
 /* =========================================================
    LIGHT THEME OVERRIDES
    html[data-theme="light"] is set from Header.tsx
@@ -1280,8 +1280,6 @@ html[data-theme="light"] .contact-info {
   color: #4b5563;
 }
 
-/* HERO / CTA BUTTONS stay red, so no change needed */
-
 /* FOOTER */
 html[data-theme="light"] .site-footer {
   background: radial-gradient(circle at top, #e5e7ff 0, #f3f4ff 55%, #e2e8f0 100%);
@@ -1332,15 +1330,6 @@ html[data-theme="light"] .mega-col a {
   color: #374151;
 }
 
-/* THEME TOGGLE LOOK IN LIGHT MODE */
-html[data-theme="light"] .theme-toggle {
-  background: #e5e7f5;
-  border-color: rgba(148, 163, 184, 0.8);
-  color: #020617;
-}
-
-
-
 /* ================= WHY Section Tablet (<= 960px) ================= */
 @media (max-width: 960px) {
   .why-grid {
@@ -1362,6 +1351,7 @@ html[data-theme="light"] .theme-toggle {
     padding: 12px 12px 14px;
   }
 }
+
 /* ================= Phones (<= 768px) ================= */
 @media (max-width: 768px) {
   .header-inner {
@@ -1369,6 +1359,10 @@ html[data-theme="light"] .theme-toggle {
   }
 
   .nav {
+    display: none;
+  }
+
+  .mega-menu {
     display: none;
   }
 
@@ -1422,19 +1416,29 @@ html[data-theme="light"] .theme-toggle {
   .newsletter-input {
     width: 100%;
   }
-}
 
-/* Optional: hide mega menu entirely on mobile (nav already hidden) */
-@media (max-width: 768px) {
-  .mega-menu {
-    display: none;
+  .services-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contact-form-row {
+    flex-direction: column;
+  }
+
+  .page-hero {
+    padding: 56px 0 30px;
+  }
+
+  .page-hero-title {
+    font-size: 1.6rem;
   }
 }
 
-/* Optional: slightly more compact on medium screens */
-@media (max-width: 1024px) {
-  .mega-inner {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: 20px;
+/* ===== Reduced motion support ===== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
   }
 }

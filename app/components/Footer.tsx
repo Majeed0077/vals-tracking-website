@@ -10,7 +10,7 @@ export default function Footer() {
                 {/* LEFT LOGO */}
                 <div className="footer-brand">
                     <Image
-                        src="/images/logo.png"
+                        src="/images/logo-light.png"
                         alt="logo"
                         width={700}        // ← Add real dimensions
                         height={420}
