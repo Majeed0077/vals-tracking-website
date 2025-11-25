@@ -58,15 +58,15 @@ export default function Header() {
   const pathname = usePathname();
 
   // THEME STATE
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
 
   // Initialize theme from localStorage / system
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const stored = window.localStorage.getItem("vals-theme") as
-      | "dark"
       | "light"
+      | "dark"
       | null;
 
     const prefersDark =
