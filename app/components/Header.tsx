@@ -109,21 +109,25 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // logo 
+  const logoSrc = theme === "dark"
+    ? "/images/logo-light.png"
+    : "/images/logo-dark.png";
+
   return (
     <header className="header">
       <div className="container header-inner">
         <div className="header-left">
-          <Link href="/">
+          <Link href="/" className="logo-wrap">
             <Image
-              src="/images/logo.png"
+              src={logoSrc}
               alt="Logo"
-              width={160}
+              width={1600}
               height={48}
               className="logo"
             />
           </Link>
         </div>
-
         <div className="header-right">
           {/* Desktop nav (mobile is hidden via CSS) */}
           <nav className="nav">
@@ -172,7 +176,7 @@ export default function Header() {
               aria-label="Toggle dark/light theme"
             >
               <span className="theme-toggle-icon">
-                {theme === "dark" ? "☀️" : "🌙"}
+                {/* {theme === "dark" ? "Dark" : "Light"} */}
               </span>
               <span className="theme-toggle-label">
                 {theme === "dark" ? "Light" : "Dark"}
