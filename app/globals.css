@@ -1411,6 +1411,181 @@ html[data-theme="light"] .theme-switch-knob {
   color: #a8cfff;
 }
 
+/* Wrap panel with subtle card feel */
+.product-panel {
+  padding: 22px 22px 20px;
+  border-radius: 18px;
+  background: radial-gradient(circle at top left, rgba(79, 148, 249, 0.16), transparent 55%),
+              rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.6);
+}
+
+/* top header row */
+.product-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* rating row already exists, just tighten spacing a bit */
+.product-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+/* price block */
+.product-price-block {
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
+
+.product-price {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #4f9cf9;
+}
+
+.product-price-note {
+  font-size: 0.8rem;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+/* stock + bar */
+.product-stock-block {
+  margin-bottom: 14px;
+}
+
+.product-stock {
+  font-size: 0.82rem;
+  color: rgba(203, 213, 225, 0.96);
+  margin-bottom: 4px;
+}
+
+.product-stock span {
+  font-weight: 600;
+}
+
+.product-stock-bar {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(30, 64, 175, 0.45);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.product-stock-bar-fill {
+  width: 68%; /* adjust if you want different visual stock level */
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #fb7185, #f97316);
+}
+
+.product-stock-hint {
+  font-size: 0.78rem;
+  color: rgba(248, 250, 252, 0.7);
+}
+
+/* bullet highlights */
+.product-highlights {
+  list-style: none;
+  margin: 6px 0 14px;
+  padding: 0;
+  font-size: 0.8rem;
+  color: rgba(203, 213, 225, 0.95);
+}
+
+.product-highlights li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.product-highlights li::before {
+  content: "•";
+  font-size: 1rem;
+  color: #60a5fa;
+}
+
+/* actions row – already had base styles; just tighten spacing */
+.product-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 12px;
+}
+
+/* quantity pill is already styled; keep it, maybe slightly denser */
+.product-qty button {
+  padding: 5px 10px;
+}
+
+/* primary vs secondary CTAs */
+.product-add-btn {
+  padding-inline: 22px;
+}
+
+.product-buy-btn {
+  padding-inline: 22px;
+  background: transparent;
+  border-radius: 999px;
+  border: 1px solid #4f9cf9;
+  color: #e5f0ff;
+  font-size: 0.85rem;
+}
+
+.product-buy-primary {
+  background: #0f172a;
+}
+
+/* quick links row */
+.product-links-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
+
+/* meta + trust */
+.product-meta-row {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: rgba(148, 163, 184, 0.96);
+}
+
+.product-trust-row {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.product-trust-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.96);
+}
+
+/* responsive tweak */
+@media (max-width: 900px) {
+  .product-panel {
+    margin-top: 18px;
+  }
+}
 
 /* ================= Tablets & small laptops (<= 1024px) ================= */
 @media (max-width: 1024px) {

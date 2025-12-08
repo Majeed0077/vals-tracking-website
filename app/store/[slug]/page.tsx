@@ -56,7 +56,6 @@ export default async function ProductDetailPage({
   <section className="section-block">
     <div className="container">
       <div className="product-layout">
-        
         {/* LEFT: image */}
         <div className="product-media">
           <div className="product-main-image">
@@ -81,30 +80,63 @@ export default async function ProductDetailPage({
           </div>
         </div>
 
-        {/* RIGHT: info */}
-        <div className="product-info">
-          {product.badge && (
-            <span className="product-badge">{product.badge}</span>
-          )}
+        {/* RIGHT: advanced info panel */}
+        <div className="product-info product-panel">
+          {/* top row: badge + rating */}
+          <div className="product-header-row">
+            {product.badge && (
+              <span className="product-badge">{product.badge}</span>
+            )}
 
-          <div className="product-rating-row">
-            <span className="product-stars">★★★★★</span>
-            <span className="product-reviews">(1 customer review)</span>
+            <div className="product-rating-row">
+              <span className="product-stars">★★★★★</span>
+              <span className="product-reviews">(1 customer review)</span>
+            </div>
           </div>
 
-          <p className="product-price">{product.price}</p>
-
-          {typeof product.stock === "number" && (
-            <p className="product-stock">
-              Only <span>{product.stock}</span> item(s) left in stock.
+          {/* price + small note */}
+          <div className="product-price-block">
+            <p className="product-price">{product.price}</p>
+            <p className="product-price-note">
+              Device price in PKR. Taxes and installation may apply.
             </p>
+          </div>
+
+          {/* stock info with progress bar */}
+          {typeof product.stock === "number" && (
+            <div className="product-stock-block">
+              <p className="product-stock">
+                Only <span>{product.stock}</span> item(s) left in stock.
+              </p>
+              <div className="product-stock-bar">
+                <div className="product-stock-bar-fill" />
+              </div>
+              <p className="product-stock-hint">
+                High demand – secure your device today.
+              </p>
+            </div>
           )}
 
+          {/* key highlights */}
+          <ul className="product-highlights">
+            <li>
+              Original {product.category === "watch" ? "Garmin" : "OEM"} hardware
+            </li>
+            <li>Fully compatible with VALS Tracking platform</li>
+            <li>Includes 12-month standard warranty</li>
+            <li>Local support &amp; installation assistance available</li>
+          </ul>
+
+          {/* Quantity + primary actions */}
           <div className="product-actions">
             <div className="product-qty">
-              <button type="button">-</button>
+              <button type="button" aria-label="Decrease quantity">
+                -
+              </button>
               <input type="number" min={1} defaultValue={1} />
-              <button type="button">+</button>
+              <button type="button" aria-label="Increase quantity">
+                +
+              </button>
             </div>
 
             <button
@@ -114,11 +146,15 @@ export default async function ProductDetailPage({
               Add to Cart
             </button>
 
-            <button type="button" className="btn product-buy-btn">
+            <button
+              type="button"
+              className="btn product-buy-btn product-buy-primary"
+            >
               Buy Now
             </button>
           </div>
 
+          {/* secondary quick links */}
           <div className="product-links-row">
             <button type="button" className="product-link-btn">
               Size Guide
@@ -131,6 +167,7 @@ export default async function ProductDetailPage({
             </button>
           </div>
 
+          {/* trust + meta */}
           <div className="product-meta-row">
             <p className="product-meta-note">
               53 people are viewing this right now.
@@ -138,14 +175,19 @@ export default async function ProductDetailPage({
             <p className="product-meta-note">
               Guaranteed safe checkout with your trusted payment provider.
             </p>
-          </div>
 
-          {/* REMOVE the old back button here */}
+            <div className="product-trust-row">
+              <span className="product-trust-pill">Secure payment</span>
+              <span className="product-trust-pill">Warranty included</span>
+              <span className="product-trust-pill">Local support</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 </main>
+
 
     </>
   );
