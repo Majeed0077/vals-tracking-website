@@ -174,6 +174,13 @@ html[data-theme="light"] .theme-switch-knob {
   width: 100%;
   opacity: 1;
 }
+.nav-shop-btn {
+  margin-left: 18px;
+  padding-inline: 20px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
 
 /* ===== MEGA MENU (Services) ===== */
 
@@ -1116,6 +1123,295 @@ html[data-theme="light"] .theme-switch-knob {
   padding-inline: 22px;
 }
 
+/* GRID: 4 columns desktop, then 3/2/1 responsive */
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 22px;
+}
+
+@media (max-width: 1200px) {
+  .store-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .store-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .store-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* CARD – clean, similar to WooCommerce style but in your theme */
+.store-card {
+  position: relative;
+  padding: 18px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  transition: 0.25s ease;
+}
+
+.store-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* TOP BADGE (Featured, New, etc.) */
+.store-badge-top {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f97373;
+  color: #fff;
+}
+
+/* IMAGE AREA – white box, product centered like screenshot */
+.store-image-box {
+  width: 100%;
+  height: 260px;
+  background: #ffffff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.store-image {
+  object-fit: contain;
+  width: 80%;
+  height: 80%;
+}
+
+/* TEXT */
+.store-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
+
+.store-price {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 14px;
+}
+
+.store-btn {
+  margin-top: auto;
+}
+/* PRODUCT DETAIL LAYOUT */
+
+.product-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 40px;
+}
+
+@media (max-width: 900px) {
+  .product-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.product-media {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.product-main-image {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-image {
+  object-fit: contain;
+  width: 100%;
+  height: auto;
+}
+
+.product-thumbs {
+  display: flex;
+  gap: 10px;
+}
+
+.product-thumb {
+  width: 70px;
+  height: 70px;
+  border-radius: 10px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.product-thumb.is-active {
+  opacity: 1;
+  box-shadow: 0 0 0 2px #2563eb;
+}
+
+/* RIGHT PANEL */
+
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.product-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f97373;
+  color: #fff;
+}
+
+.product-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.product-stars {
+  color: #fbbf24;
+}
+
+.product-reviews {
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.product-price {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #4f9cf9;
+}
+
+.product-stock {
+  font-size: 0.85rem;
+  color: rgba(203, 213, 225, 0.95);
+}
+
+.product-stock span {
+  font-weight: 600;
+}
+
+/* Quantity + buttons */
+
+.product-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.product-qty {
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+}
+
+.product-qty button {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  color: #e5e7eb;
+  cursor: pointer;
+}
+
+.product-qty input {
+  width: 42px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 0.9rem;
+}
+
+/* CTA buttons */
+
+.product-add-btn {
+  padding-inline: 22px;
+}
+
+.product-buy-btn {
+  padding-inline: 22px;
+  background: #0f172a;
+  border-radius: 999px;
+  border: 1px solid #4f9cf9;
+  color: #e5f0ff;
+  font-size: 0.85rem;
+}
+
+/* Little link row under CTAs */
+
+.product-links-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.product-link-btn {
+  background: transparent;
+  border: none;
+  color: rgba(148, 163, 184, 0.96);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Meta + back link */
+
+.product-meta-row {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: rgba(148, 163, 184, 0.96);
+}
+
+.product-back-top {
+  display: inline-block;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  color: #7bb6ff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: 0.2s ease;
+}
+
+.product-back-top:hover {
+  color: #a8cfff;
+}
+
+
 /* ================= Tablets & small laptops (<= 1024px) ================= */
 @media (max-width: 1024px) {
   .container {
@@ -1440,5 +1736,10 @@ html[data-theme="light"] .mega-col a {
     scroll-behavior: auto !important;
     transition: none !important;
     animation: none !important;
+  }
+}
+@media (max-width: 768px) {
+  .nav-shop-btn {
+    display: none; /* matches your current behavior of hiding nav on mobile */
   }
 }

@@ -49,8 +49,10 @@ const navItems = [
     ],
   },
   { href: "/packages", label: "Packages" },
-  { href: "/about", label: "About" },
+  { href: "/store", label: "Store" },      // <-- add this
+  { href: "/about", label: "About" },      // <-- fix label
   { href: "/contact", label: "Contact" },
+
 ];
 
 export default function Header() {
@@ -172,6 +174,11 @@ export default function Header() {
               );
             })}
 
+            {/* NEW: Shop Now CTA */}
+            {/* <Link href="/store" className="btn btn-primary nav-shop-btn">
+              Shop Now
+            </Link> */}
+
             {/* iOS style theme switch after Contact */}
             <button
               type="button"
@@ -182,6 +189,7 @@ export default function Header() {
               <span className="theme-switch-knob" />
             </button>
           </nav>
+
         </div>
       </div>
     </header>
