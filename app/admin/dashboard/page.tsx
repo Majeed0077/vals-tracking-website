@@ -1,17 +1,29 @@
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+import Link from "next/link";
 
 // Prevent static generation (important for Netlify + DB queries)
 export const dynamic = "force-dynamic";
 
+type ProductDoc = {
+  _id: string;
+  name: string;
+  slug: string;
+  category?: string;
+  price: number | string;
+  stock?: number;
+  badge?: string;
+  createdAt?: string | Date;
+};
+
 export default async function AdminDashboardPage() {
   await connectDB();
 
-  const products = await Product.find().lean();
+  const products = (await Product.find().lean()) as ProductDoc[];
 
   const totalProducts = products.length;
   const totalStock = products.reduce(
-    (sum: number, p: any) => sum + (p.stock || 0),
+    (sum, p) => sum + (p.stock || 0),
     0
   );
 
@@ -55,6 +67,7 @@ export default async function AdminDashboardPage() {
             </Link>
           </div>
         </div>
+
         {/* Stats cards */}
         <div
           style={{
@@ -129,7 +142,7 @@ export default async function AdminDashboardPage() {
                     </td>
                   </tr>
                 ) : (
-                  products.map((p: any) => (
+                  products.map((p) => (
                     <tr key={p._id.toString()}>
                       <td>{p.name}</td>
                       <td>{p.slug}</td>
