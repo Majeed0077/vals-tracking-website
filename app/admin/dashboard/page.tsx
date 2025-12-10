@@ -54,7 +54,6 @@ export default async function AdminDashboardPage() {
             </Link>
           </div>
         </div>
-
         {/* Stats cards */}
         <div
           style={{
