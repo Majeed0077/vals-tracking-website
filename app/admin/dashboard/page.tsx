@@ -1,7 +1,8 @@
-// app/admin/dashboard/page.tsx
-import Link from "next/link";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+
+// Prevent static generation (important for Netlify + DB queries)
+export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   await connectDB();

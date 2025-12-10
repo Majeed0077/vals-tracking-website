@@ -1,6 +1,12 @@
+// lib/mongodb.ts
 import mongoose, { Mongoose } from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI || "";
+
+if (!MONGODB_URI) {
+  // This will show in logs if env is missing, but won't crash on import
+  console.warn("MONGODB_URI is not set. Database connections will fail at runtime.");
+}
 
 interface MongooseCache {
   conn: Mongoose | null;
@@ -8,6 +14,7 @@ interface MongooseCache {
 }
 
 declare global {
+  // eslint-disable-next-line no-var
   var mongooseCache: MongooseCache | undefined;
 }
 
@@ -19,9 +26,9 @@ const cached: MongooseCache = globalThis.mongooseCache || {
 globalThis.mongooseCache = cached;
 
 export async function connectDB(): Promise<Mongoose> {
-  // Runtime check – only fails when we actually try to connect
   if (!MONGODB_URI) {
-    throw new Error("MONGODB_URI is not configured");
+    // Fail only when we actually try to connect
+    throw new Error("MONGODB_URI is not configured in environment variables.");
   }
 
   if (cached.conn) {
@@ -29,7 +36,6 @@ export async function connectDB(): Promise<Mongoose> {
   }
 
   if (!cached.promise) {
-    // Optional logs – fine in dev, you can wrap in NODE_ENV check later
     console.log("CONNECTING TO DATABASE...");
 
     cached.promise = mongoose
@@ -42,6 +48,7 @@ export async function connectDB(): Promise<Mongoose> {
         return mongooseInstance;
       });
   }
+
   cached.conn = await cached.promise;
   return cached.conn;
 }
