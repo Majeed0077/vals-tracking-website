@@ -4,8 +4,9 @@ import mongoose, { Mongoose } from "mongoose";
 const MONGODB_URI = process.env.MONGODB_URI || "";
 
 if (!MONGODB_URI) {
-  // This will show in logs if env is missing, but won't crash on import
-  console.warn("MONGODB_URI is not set. Database connections will fail at runtime.");
+  console.warn(
+    "MONGODB_URI is not set. Database connections will fail at runtime."
+  );
 }
 
 interface MongooseCache {
@@ -27,28 +28,35 @@ globalThis.mongooseCache = cached;
 
 export async function connectDB(): Promise<Mongoose> {
   if (!MONGODB_URI) {
-    // Fail only when we actually try to connect
     throw new Error("MONGODB_URI is not configured in environment variables.");
   }
 
+  // Already connected
   if (cached.conn) {
     return cached.conn;
   }
 
+  // Start connection promise once
   if (!cached.promise) {
     console.log("CONNECTING TO DATABASE...");
 
     cached.promise = mongoose
-      .connect(MONGODB_URI, {
-        bufferCommands: false,
-      })
+      .connect(MONGODB_URI, { bufferCommands: false })
       .then((mongooseInstance) => {
         console.log("CONNECTED DB NAME:", mongooseInstance.connection.name);
         console.log("CONNECTED HOST:", mongooseInstance.connection.host);
         return mongooseInstance;
+      })
+      .catch((err) => {
+        // If connection fails, reset promise so next call can retry
+        cached.promise = null;
+        console.error("MONGODB CONNECTION ERROR:", err);
+        throw err;
       });
   }
 
-  cached.conn = await cached.promise;
-  return cached.conn;
+  // Here TypeScript knows cached.promise is not null
+  const db = await cached.promise;
+  cached.conn = db;
+  return db;
 }
