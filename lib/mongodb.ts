@@ -42,7 +42,6 @@ export async function connectDB(): Promise<Mongoose> {
         return mongooseInstance;
       });
   }
-
   cached.conn = await cached.promise;
   return cached.conn;
 }
