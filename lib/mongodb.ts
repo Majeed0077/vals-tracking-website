@@ -1,10 +1,6 @@
 import mongoose, { Mongoose } from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
-
-if (!MONGODB_URI) {
-  throw new Error("Missing MONGODB_URI");
-}
+const MONGODB_URI = process.env.MONGODB_URI || "";
 
 interface MongooseCache {
   conn: Mongoose | null;
@@ -12,25 +8,28 @@ interface MongooseCache {
 }
 
 declare global {
-  // Allow global `mongoose` to exist
-  // This avoids TypeScript "any" errors
-  // and supports Next.js hot reload
   var mongooseCache: MongooseCache | undefined;
 }
 
-const cached: MongooseCache = global.mongooseCache || {
+const cached: MongooseCache = globalThis.mongooseCache || {
   conn: null,
   promise: null,
 };
 
-global.mongooseCache = cached;
+globalThis.mongooseCache = cached;
 
 export async function connectDB(): Promise<Mongoose> {
+  // Runtime check – only fails when we actually try to connect
+  if (!MONGODB_URI) {
+    throw new Error("MONGODB_URI is not configured");
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
 
   if (!cached.promise) {
+    // Optional logs – fine in dev, you can wrap in NODE_ENV check later
     console.log("CONNECTING TO DATABASE...");
 
     cached.promise = mongoose
