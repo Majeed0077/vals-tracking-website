@@ -5,3 +5,10 @@ Then
 git add .
 git commit -m "update"
 git push
+
+
+Email: admin@vals.com
+Password: admin123
+
+user@test.com
+user123

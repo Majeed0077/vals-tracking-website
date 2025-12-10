@@ -5,6 +5,11 @@
 *::after {
   box-sizing: border-box;
 }
+:root {
+  --primary-color: #ff2539;
+  --border-color: rgba(148, 163, 184, 0.7);
+}
+
 
 html,
 body {
@@ -30,7 +35,6 @@ body {
   margin: 0 auto;
   padding: 0 24px;
 }
-
 /* ============= HEADER ============= */
 .header {
   position: sticky;
@@ -42,40 +46,33 @@ body {
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
   transition: background 0.25s ease, border-color 0.25s ease;
 }
-
 /* On scroll — darker and thinner */
 .header.scrolled {
   background: rgba(34, 38, 48, 0.75);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 18px 0;
 }
-
 .logo {
   height: 50px;
   width: auto;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
   transition: transform 0.25s ease;
 }
-
 .logo:hover {
   transform: scale(1.04);
 }
-
 /* NAV + THEME SWITCH */
 .nav {
   display: flex;
   gap: 32px;
   position: relative; /* for mega menu positioning */
 }
-
 /* ===== THEME SWITCH (iOS style) ===== */
-
 .theme-switch {
   position: relative;
   margin-left: 20px;
@@ -96,7 +93,6 @@ body {
     border-color 0.18s ease,
     box-shadow 0.18s ease;
 }
-
 .theme-switch-knob {
   width: 16px;
   height: 16px;
@@ -106,23 +102,19 @@ body {
   transform: translateX(0);
   transition: transform 0.18s ease;
 }
-
 /* ON state (dark theme) – knob right side */
 .theme-switch--on {
   background: #111827;
   border-color: rgba(148, 163, 184, 0.9);
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.8);
 }
-
 .theme-switch--on .theme-switch-knob {
   transform: translateX(16px);
 }
-
 /* Focus outline for keyboard users */
 .theme-switch:focus-visible {
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.8);
 }
-
 /* Light theme colors for switch */
 html[data-theme="light"] .theme-switch {
   background: #e5e7eb;
@@ -944,6 +936,7 @@ html[data-theme="light"] .theme-switch-knob {
   text-align: center;
 }
 
+
 /* ============= INNER PAGES ============= */
 
 .page-hero {
@@ -1580,6 +1573,185 @@ html[data-theme="light"] .theme-switch-knob {
   color: rgba(226, 232, 240, 0.96);
 }
 
+
+.admin-stat-card {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: radial-gradient(circle at top left, rgba(79, 148, 249, 0.14), transparent 55%),
+    rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.7);
+}
+
+.admin-stat-label {
+  font-size: 0.8rem;
+  color: rgba(148, 163, 184, 0.95);
+  margin-bottom: 4px;
+}
+
+.admin-stat-value {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #e5f0ff;
+}
+
+.admin-stat-sub {
+  font-size: 0.75rem;
+  margin-top: 4px;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.admin-table-wrapper {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.95);
+  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.8);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.admin-table thead {
+  background: rgba(30, 64, 175, 0.4);
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.8);
+}
+
+.admin-table th {
+  font-weight: 500;
+  color: rgba(226, 232, 240, 0.96);
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+html[data-theme="light"] .login-btn {
+  border-color: rgba(148, 163, 184, 0.8);
+  color: #111827;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .signup-btn {
+  background: #111827;
+  color: #f9fafb;
+}
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Base style for both Login & Signup buttons */
+.nav-auth-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 0.92rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+
+  /* IMPORTANT: remove default blue link color */
+  color: rgba(209, 213, 219, 0.95);
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Login = subtle outlined button */
+.login-btn {
+  background: transparent;
+  border-color: var(--border-color);
+}
+
+/* Signup = solid primary button */
+.signup-btn {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #ffffff;
+}
+
+/* Hover states */
+.login-btn:hover {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.signup-btn:hover {
+  background: #e11d2f; /* slightly darker red */
+}
+
+/* Remove ugly default focus outline, but keep accessibility */
+.nav-auth-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(248, 250, 252, 0.8);
+}
+
+.auth-page {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 16px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #0b0f17;
+  border-radius: 18px;
+  padding: 22px 22px 26px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(15, 23, 42, 0.9);
+}
+
+.auth-title {
+  margin: 0 0 14px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.auth-error {
+  margin: 0 0 12px;
+  font-size: 0.86rem;
+  color: #f97373;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-submit {
+  margin-top: 10px;
+  width: 100%;
+  justify-content: center;
+}
 /* responsive tweak */
 @media (max-width: 900px) {
   .product-panel {
