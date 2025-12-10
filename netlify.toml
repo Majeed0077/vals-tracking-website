@@ -1,0 +1,13 @@
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["mongoose"]
+  included_files = ["./models/**", "./lib/**"]
+
+[functions.server]
+  # Force all Next.js API route functions to use Node.js runtime
+  nodejs_runtime = true
+
+# Disable edge functions by default so mongoose doesn't run on Edge
+[[edge_functions]]
+  path = "/"
+  function = ""
