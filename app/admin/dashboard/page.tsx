@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import Link from "next/link";
 
 // You can keep this if you really want to force dynamic behavior for Netlify
@@ -10,6 +16,7 @@ type Product = {
   _id: string;
   name: string;
   slug: string;
+  image: string;
   category?: string;
   price: number;
   stock?: number;
@@ -20,6 +27,7 @@ type Product = {
 type FormState = {
   name: string;
   slug: string;
+  image: string; // existing image (for edit)
   category: string;
   price: string;
   stock: string;
@@ -29,11 +37,31 @@ type FormState = {
 const INITIAL_FORM: FormState = {
   name: "",
   slug: "",
+  image: "",
   category: "",
   price: "",
   stock: "",
   badge: "",
 };
+
+// helper: file -> base64 (data URL)
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === "string") {
+        resolve(result);
+      } else {
+        reject(new Error("Failed to read file"));
+      }
+    };
+    reader.onerror = () => {
+      reject(reader.error || new Error("Failed to read file"));
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function AdminDashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -42,6 +70,13 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
+
+  // image upload state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+
+  // file input ref (to clear chosen filename)
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Derived stats
   const totalProducts = products.length;
@@ -92,9 +127,47 @@ export default function AdminDashboardPage() {
     }));
   }
 
+  function handleImageChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] || null;
+
+    if (!file) {
+      setImageFile(null);
+      setImagePreview("");
+      return;
+    }
+
+    // allow only png / jpg / jpeg / webp
+    const allowedTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+      "image/webp",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      setError("Only PNG, JPG, JPEG, or WEBP images are allowed.");
+      e.target.value = "";
+      setImageFile(null);
+      setImagePreview("");
+      return;
+    }
+
+    setError(null);
+    setImageFile(file);
+
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+  }
+
   function resetForm() {
     setForm(INITIAL_FORM);
     setEditingId(null);
+    setImageFile(null);
+    setImagePreview("");
+
+    // file input ko bhi clear karo (filename hide ho jayega)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -103,17 +176,36 @@ export default function AdminDashboardPage() {
     setError(null);
 
     try {
+      // decide which image to send
+      let imageToUse = form.image;
+
+      // create mode: image is mandatory
+      if (!editingId && !imageFile) {
+        throw new Error("Image is required.");
+      }
+
+      // if new file selected (create or edit), convert to base64
+      if (imageFile) {
+        imageToUse = await fileToBase64(imageFile);
+      }
+
       const payload = {
         name: form.name.trim(),
         slug: form.slug.trim(),
+        image: imageToUse,
         category: form.category.trim() || undefined,
         price: Number(form.price),
         stock: form.stock ? Number(form.stock) : undefined,
         badge: form.badge.trim() || undefined,
       };
 
-      if (!payload.name || !payload.slug || isNaN(payload.price)) {
-        throw new Error("Name, slug, and price are required.");
+      if (
+        !payload.name ||
+        !payload.slug ||
+        !payload.image ||
+        Number.isNaN(payload.price)
+      ) {
+        throw new Error("Name, slug, image, and price are required.");
       }
 
       const url = editingId ? `/api/products/${editingId}` : "/api/products";
@@ -146,14 +238,22 @@ export default function AdminDashboardPage() {
     setForm({
       name: product.name || "",
       slug: product.slug || "",
+      image: product.image || "", // keep existing base64/URL
       category: product.category || "",
       price: product.price != null ? String(product.price) : "",
-      stock:
-        product.stock != null
-          ? String(product.stock)
-          : "",
+      stock: product.stock != null ? String(product.stock) : "",
       badge: product.badge || "",
     });
+
+    setImageFile(null);
+    if (typeof product.image === "string") {
+      setImagePreview(product.image);
+    } else {
+      setImagePreview("");
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   }
 
   async function deleteProduct(id: string) {
@@ -310,6 +410,30 @@ export default function AdminDashboardPage() {
               />
             </div>
 
+            {/* Image upload */}
+            <div className="form-field">
+              <label className="form-label" htmlFor="image">
+                Product image (PNG/JPG/JPEG/WEBP)
+              </label>
+              <input
+                ref={fileInputRef}
+                id="image"
+                name="image"
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                className="form-input"
+                onChange={handleImageChange}
+              />
+              {imagePreview && (
+                <p
+                  className="admin-form-subtitle"
+                  style={{ marginTop: 4, fontSize: "0.75rem" }}
+                >
+                  Image selected – will be saved with this product.
+                </p>
+              )}
+            </div>
+
             <div className="form-field">
               <label className="form-label" htmlFor="category">
                 Category
@@ -382,13 +506,12 @@ export default function AdminDashboardPage() {
                     ? "Saving..."
                     : "Creating..."
                   : editingId
-                    ? "Save Changes"
-                    : "Create Product"}
+                  ? "Save Changes"
+                  : "Create Product"}
               </button>
             </div>
           </form>
         </section>
-
 
         {/* Products table */}
         <section>
@@ -425,7 +548,7 @@ export default function AdminDashboardPage() {
                 <tbody>
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       style={{ textAlign: "center", padding: 24 }}
                     >
                       No products found. Use{" "}
@@ -438,6 +561,7 @@ export default function AdminDashboardPage() {
               <table className="admin-table">
                 <thead>
                   <tr>
+                    <th>Image</th>
                     <th>Name</th>
                     <th>Slug</th>
                     <th>Category</th>
@@ -451,6 +575,20 @@ export default function AdminDashboardPage() {
                 <tbody>
                   {products.map((p) => (
                     <tr key={p._id}>
+                      <td>
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            objectFit: "cover",
+                            borderRadius: 8,
+                            border:
+                              "1px solid rgba(148, 163, 184, 0.5)",
+                          }}
+                        />
+                      </td>
                       <td>{p.name}</td>
                       <td>{p.slug}</td>
                       <td>{p.category}</td>

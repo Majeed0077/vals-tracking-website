@@ -18,29 +18,49 @@ export async function POST(req: NextRequest) {
       badge,
     } = body;
 
-    // Required fields
+    // Required fields (category optional in UI, so don't enforce here)
     const requiredFields: Record<string, unknown> = {
       name,
       slug,
       price,
       image,
-      category,
     };
 
     for (const [field, value] of Object.entries(requiredFields)) {
       if (value === undefined || value === null || value === "") {
         return NextResponse.json(
-          { success: false, error: `${field} is required` },
+          { success: false, message: `${field} is required` },
           { status: 400 }
         );
       }
+    }
+
+    // Number safety
+    const numericPrice = Number(price);
+    const numericStock =
+      stock === undefined || stock === null || stock === ""
+        ? 0
+        : Number(stock);
+
+    if (Number.isNaN(numericPrice)) {
+      return NextResponse.json(
+        { success: false, message: "price must be a number" },
+        { status: 400 }
+      );
+    }
+
+    if (Number.isNaN(numericStock)) {
+      return NextResponse.json(
+        { success: false, message: "stock must be a number" },
+        { status: 400 }
+      );
     }
 
     // Unique slug check
     const existing = await Product.findOne({ slug });
     if (existing) {
       return NextResponse.json(
-        { success: false, error: "Slug already exists" },
+        { success: false, message: "Slug already exists" },
         { status: 409 }
       );
     }
@@ -48,10 +68,10 @@ export async function POST(req: NextRequest) {
     const product = await Product.create({
       name,
       slug,
-      price,
+      price: numericPrice,
       image,
       category,
-      stock,
+      stock: numericStock,
       badge,
     });
 
@@ -64,7 +84,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to create product",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to create product",
       },
       { status: 500 }
     );
@@ -82,7 +105,10 @@ export async function GET() {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to fetch products",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch products",
       },
       { status: 500 }
     );
