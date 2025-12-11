@@ -1752,6 +1752,129 @@ html[data-theme="light"] .signup-btn {
   width: 100%;
   justify-content: center;
 }
+
+/* ============= ADMIN FORM (Dashboard) ============= */
+
+.admin-form-card {
+  margin-bottom: 32px;
+  border-radius: 18px;
+  padding: 18px 20px 20px;
+  background:
+    radial-gradient(circle at top left, rgba(79, 148, 249, 0.14), transparent 55%),
+    rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.95);
+}
+
+.admin-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.admin-form-title {
+  font-size: 0.96rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.96);
+}
+
+.admin-form-subtitle {
+  font-size: 0.8rem;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  align-items: flex-end;
+}
+
+@media (max-width: 768px) {
+  .admin-form-card {
+    padding: 14px 14px 16px;
+  }
+
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* fields */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  color: rgba(200, 210, 242, 0.9);
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.95);
+  color: #e5e7eb;
+  font-family: inherit;
+  font-size: 0.86rem;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    transform 0.12s ease;
+}
+
+.form-input::placeholder {
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.form-input:focus {
+  border-color: #ff2539;
+  box-shadow: 0 0 0 1px rgba(255, 37, 57, 0.7);
+  background: #020617;
+  transform: translateY(-0.5px);
+}
+
+/* error banner reused in admin pages */
+
+.admin-error-banner {
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(220, 38, 38, 0.55);
+  background: rgba(254, 242, 242, 0.98);
+  color: rgb(153, 27, 27);
+  font-size: 0.85rem;
+}
+
+html[data-theme="light"] .admin-form-card {
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 55%),
+    #ffffff;
+  border-color: rgba(148, 163, 184, 0.55);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.15);
+}
+
+html[data-theme="light"] .form-input {
+  background: #f9fafb;
+  color: #0f172a;
+  border-color: rgba(148, 163, 184, 0.8);
+}
+
+html[data-theme="light"] .form-input:focus {
+  background: #ffffff;
+}
+
 /* responsive tweak */
 @media (max-width: 900px) {
   .product-panel {
