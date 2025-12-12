@@ -1,3 +1,4 @@
+// app/admin/dashboard/page.tsx
 "use client";
 
 import {
@@ -8,6 +9,7 @@ import {
   type FormEvent,
 } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 // You can keep this if you really want to force dynamic behavior for Netlify
 export const dynamic = "force-dynamic";
@@ -63,6 +65,13 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+// helper: unknown -> message (no any)
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  return fallback;
+}
+
 export default function AdminDashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -80,10 +89,7 @@ export default function AdminDashboardPage() {
 
   // Derived stats
   const totalProducts = products.length;
-  const totalStock = products.reduce(
-    (sum, p) => sum + (p.stock ?? 0),
-    0
-  );
+  const totalStock = products.reduce((sum, p) => sum + (p.stock ?? 0), 0);
   // placeholders for now – orders system baad me add karenge
   const totalOrders = 0;
   const totalRevenue = 0;
@@ -98,16 +104,38 @@ export default function AdminDashboardPage() {
         cache: "no-store",
       });
 
-      const data = await res.json();
+      const data: unknown = await res.json();
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "Failed to load products");
+      // minimal runtime guard (no any)
+      const ok =
+        typeof data === "object" &&
+        data !== null &&
+        "success" in data &&
+        (data as { success: unknown }).success === true;
+
+      if (!res.ok || !ok) {
+        const message =
+          typeof data === "object" &&
+            data !== null &&
+            "message" in data &&
+            typeof (data as { message?: unknown }).message === "string"
+            ? (data as { message: string }).message
+            : "Failed to load products";
+        throw new Error(message);
       }
 
-      setProducts(data.products || []);
-    } catch (err: any) {
+      const productsFromApi =
+        typeof data === "object" &&
+          data !== null &&
+          "products" in data &&
+          Array.isArray((data as { products?: unknown }).products)
+          ? ((data as { products: Product[] }).products ?? [])
+          : [];
+
+      setProducts(productsFromApi);
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Unexpected error while loading products");
+      setError(getErrorMessage(err, "Unexpected error while loading products"));
     } finally {
       setLoading(false);
     }
@@ -117,9 +145,7 @@ export default function AdminDashboardPage() {
     loadProducts();
   }, []);
 
-  function onChange(
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) {
+  function onChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
@@ -137,12 +163,7 @@ export default function AdminDashboardPage() {
     }
 
     // allow only png / jpg / jpeg / webp
-    const allowedTypes = [
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-      "image/webp",
-    ];
+    const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       setError("Only PNG, JPG, JPEG, or WEBP images are allowed.");
       e.target.value = "";
@@ -217,17 +238,30 @@ export default function AdminDashboardPage() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data: unknown = await res.json();
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "Failed to save product");
+      const ok =
+        typeof data === "object" &&
+        data !== null &&
+        "success" in data &&
+        (data as { success: unknown }).success === true;
+
+      if (!res.ok || !ok) {
+        const message =
+          typeof data === "object" &&
+            data !== null &&
+            "message" in data &&
+            typeof (data as { message?: unknown }).message === "string"
+            ? (data as { message: string }).message
+            : "Failed to save product";
+        throw new Error(message);
       }
 
       await loadProducts();
       resetForm();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Unexpected error while saving product");
+      setError(getErrorMessage(err, "Unexpected error while saving product"));
     } finally {
       setSaving(false);
     }
@@ -267,16 +301,29 @@ export default function AdminDashboardPage() {
         method: "DELETE",
       });
 
-      const data = await res.json();
+      const data: unknown = await res.json();
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "Failed to delete product");
+      const ok =
+        typeof data === "object" &&
+        data !== null &&
+        "success" in data &&
+        (data as { success: unknown }).success === true;
+
+      if (!res.ok || !ok) {
+        const message =
+          typeof data === "object" &&
+            data !== null &&
+            "message" in data &&
+            typeof (data as { message?: unknown }).message === "string"
+            ? (data as { message: string }).message
+            : "Failed to delete product";
+        throw new Error(message);
       }
 
       setProducts((prev) => prev.filter((p) => p._id !== id));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Unexpected error while deleting product");
+      setError(getErrorMessage(err, "Unexpected error while deleting product"));
     } finally {
       setSaving(false);
     }
@@ -306,7 +353,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div style={{ display: "flex", gap: 10 }}>
-            <Link href="/store" className="btn">
+            <Link href="/store" className="btn btn-primary">
               View Store
             </Link>
             <Link
@@ -346,9 +393,7 @@ export default function AdminDashboardPage() {
 
           <div className="admin-stat-card">
             <p className="admin-stat-label">Total Revenue</p>
-            <p className="admin-stat-value">
-              Rs {totalRevenue.toLocaleString()}
-            </p>
+            <p className="admin-stat-value">Rs {totalRevenue.toLocaleString()}</p>
             <p className="admin-stat-sub">Connect checkout to enable</p>
           </div>
         </div>
@@ -496,18 +541,14 @@ export default function AdminDashboardPage() {
             </div>
 
             <div style={{ display: "flex", alignItems: "flex-end" }}>
-              <button
-                type="submit"
-                disabled={saving}
-                className="btn btn-primary"
-              >
+              <button type="submit" disabled={saving} className="btn btn-primary">
                 {saving
                   ? editingId
                     ? "Saving..."
                     : "Creating..."
                   : editingId
-                  ? "Save Changes"
-                  : "Create Product"}
+                    ? "Save Changes"
+                    : "Create Product"}
               </button>
             </div>
           </form>
@@ -547,12 +588,9 @@ export default function AdminDashboardPage() {
               <table className="admin-table">
                 <tbody>
                   <tr>
-                    <td
-                      colSpan={9}
-                      style={{ textAlign: "center", padding: 24 }}
-                    >
-                      No products found. Use{" "}
-                      <strong>“+ Add Product”</strong> to create one.
+                    <td colSpan={9} style={{ textAlign: "center", padding: 24 }}>
+                      No products found. Use <strong>“+ Add Product”</strong> to
+                      create one.
                     </td>
                   </tr>
                 </tbody>
@@ -576,16 +614,16 @@ export default function AdminDashboardPage() {
                   {products.map((p) => (
                     <tr key={p._id}>
                       <td>
-                        <img
+                        <Image
                           src={p.image}
                           alt={p.name}
+                          width={40}
+                          height={40}
+                          unoptimized
                           style={{
-                            width: 40,
-                            height: 40,
                             objectFit: "cover",
                             borderRadius: 8,
-                            border:
-                              "1px solid rgba(148, 163, 184, 0.5)",
+                            border: "1px solid rgba(148, 163, 184, 0.5)",
                           }}
                         />
                       </td>
@@ -600,9 +638,7 @@ export default function AdminDashboardPage() {
                       <td>{p.stock ?? "-"}</td>
                       <td>{p.badge || "-"}</td>
                       <td>
-                        {p.createdAt
-                          ? new Date(p.createdAt).toLocaleDateString()
-                          : "-"}
+                        {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "-"}
                       </td>
                       <td style={{ textAlign: "right" }}>
                         <button
