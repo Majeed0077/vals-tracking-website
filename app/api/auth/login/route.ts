@@ -6,11 +6,20 @@ import Admin from "@/models/Admin";
 import User from "@/models/User";
 import { signAuthToken, TOKEN_NAME, TOKEN_MAX_AGE } from "@/lib/auth";
 
+type AccountDoc = {
+  _id: { toString(): string };
+  email: string;
+  passwordHash: string;
+};
+
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
-    const { email, password } = await req.json();
+    const { email, password } = (await req.json()) as {
+      email?: string;
+      password?: string;
+    };
 
     if (!email || !password) {
       return NextResponse.json(
@@ -21,16 +30,20 @@ export async function POST(req: NextRequest) {
 
     // 1) Try admin first
     let role: "admin" | "user" | null = null;
-    let account: any = await Admin.findOne({ email });
+
+    let account: AccountDoc | null = await Admin.findOne({ email })
+      .select("_id email passwordHash")
+      .lean<AccountDoc>();
 
     if (account) {
       role = "admin";
     } else {
       // 2) Try user
-      account = await User.findOne({ email });
-      if (account) {
-        role = "user";
-      }
+      account = await User.findOne({ email })
+        .select("_id email passwordHash")
+        .lean<AccountDoc>();
+
+      if (account) role = "user";
     }
 
     if (!account || !role) {
@@ -55,10 +68,7 @@ export async function POST(req: NextRequest) {
       role,
     });
 
-    const res = NextResponse.json(
-      { success: true, role },
-      { status: 200 }
-    );
+    const res = NextResponse.json({ success: true, role }, { status: 200 });
 
     // 4) Single HTTP-only cookie for both roles
     res.cookies.set(TOKEN_NAME, token, {
