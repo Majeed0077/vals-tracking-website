@@ -42,7 +42,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       {/* WHY CHOOSE US */}
       <section className="why">
         <div className="container">
@@ -68,7 +67,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       {/* OUR SERVICES */}
       <section className="services">
         <div className="container">
