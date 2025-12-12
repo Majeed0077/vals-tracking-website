@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -16,31 +17,45 @@ type ProductDoc = {
   stock?: number;
 };
 
-// IMPORTANT: params is a Promise in your setup
 type ProductDetailPageProps = {
   params: Promise<{
     slug: string;
   }>;
 };
 
-export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  // ⬅️ yahan Promise ko unwrap kar rahe hain
-  const { slug } = await params;
+function escapeRegex(input: string) {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export default async function ProductDetailPage({
+  params,
+}: ProductDetailPageProps) {
+  const { slug: raw } = await params;
 
   await connectDB();
 
-  const doc = (await Product.findOne({ slug }).lean()) as ProductDoc | null;
+  // ✅ decode + normalize slug from URL
+  const decodedSlug = decodeURIComponent(String(raw))
+    .trim()
+    .toLowerCase();
+
+  // ✅ try normalized exact match first (for new clean slugs like "basic-plan")
+  let doc = (await Product.findOne({ slug: decodedSlug }).lean()) as ProductDoc | null;
+
+  // ✅ fallback for old DB slugs like "Basic plan" (case-insensitive exact)
+  if (!doc) {
+    const rawDecoded = decodeURIComponent(String(raw)).trim();
+    doc = (await Product.findOne({
+      slug: { $regex: `^${escapeRegex(rawDecoded)}$`, $options: "i" },
+    }).lean()) as ProductDoc | null;
+  }
 
   if (!doc) {
     return (
       <main className="section-block">
         <div className="container">
           <p>Product not found.</p>
-          <Link
-            href="/store"
-            className="btn btn-primary"
-            style={{ marginTop: 16 }}
-          >
+          <Link href="/store" className="btn btn-primary" style={{ marginTop: 16 }}>
             Back to Store
           </Link>
         </div>
@@ -83,36 +98,43 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             <div className="product-layout">
               {/* LEFT: image */}
               <div className="product-media">
-                <div className="product-main-image">
-                  <img
+                {/* MAIN IMAGE */}
+                <div
+                  className="product-main-image"
+                  style={{
+                    position: "relative",
+                    width: "100%",
+                    maxWidth: 520,
+                    aspectRatio: "1 / 1",
+                    borderRadius: 16,
+                    overflow: "hidden",
+                  }}
+                >
+                  <Image
                     src={product.image}
                     alt={product.name}
-                    className="product-image"
-                    style={{
-                      width: "100%",
-                      maxWidth: 520,
-                      borderRadius: 16,
-                      objectFit: "cover",
-                    }}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 520px"
+                    style={{ objectFit: "cover" }}
+                    priority
+                    unoptimized
                   />
                 </div>
 
+                {/* THUMBNAIL */}
                 <div className="product-thumbs">
                   <div className="product-thumb is-active">
-                    <img
+                    <Image
                       src={product.image}
                       alt={product.name}
-                      style={{
-                        width: 80,
-                        height: 80,
-                        objectFit: "cover",
-                        borderRadius: 12,
-                      }}
+                      width={80}
+                      height={80}
+                      style={{ objectFit: "cover", borderRadius: 12 }}
+                      unoptimized
                     />
                   </div>
                 </div>
               </div>
-
               {/* RIGHT: advanced info panel */}
               <div className="product-info product-panel">
                 {/* top row: badge + rating */}
@@ -178,17 +200,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                     </button>
                   </div>
 
-                  <button
-                    type="button"
-                    className="btn btn-primary product-add-btn"
-                  >
+                  <button type="button" className="btn btn-primary product-add-btn">
                     Add to Cart
                   </button>
 
-                  <button
-                    type="button"
-                    className="btn product-buy-btn product-buy-primary"
-                  >
+                  <button type="button" className="btn product-buy-btn product-buy-primary">
                     Buy Now
                   </button>
                 </div>

@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const navItems = [
@@ -49,22 +49,53 @@ const navItems = [
     ],
   },
   { href: "/packages", label: "Packages" },
-  { href: "/store", label: "Store" },      // <-- add this
-  { href: "/about", label: "About" },      // <-- fix label
+  { href: "/store", label: "Store" },
+  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
-
 ];
+
+type UserRole = "admin" | "user" | null;
+
+type AuthState = {
+  checked: boolean;
+  loggedIn: boolean;
+  role: UserRole;
+};
+
+// ✅ Type-safe union for /api/auth/me responses (old + new supported)
+type MeApiResponse =
+  | { loggedIn?: boolean; role?: UserRole; email?: string | null; userId?: string | null }
+  | { authenticated?: boolean; user?: { role?: UserRole } };
+
+function normalizeMeResponse(
+  data: MeApiResponse
+): { loggedIn: boolean; role: UserRole } {
+  // supports: { loggedIn: true, role: "admin" | "user" }
+  if ("loggedIn" in data && typeof data.loggedIn === "boolean") {
+    return {
+      loggedIn: data.loggedIn,
+      role: data.role ?? null,
+    };
+  }
+
+  // supports: { authenticated: true, user: { role: ... } }
+  if ("authenticated" in data && typeof data.authenticated === "boolean") {
+    return {
+      loggedIn: data.authenticated,
+      role: data.user?.role ?? null,
+    };
+  }
+
+  return { loggedIn: false, role: null };
+}
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
 
-  // -------------------------------------------
-  // THEME STATE
-  // -------------------------------------------
-
+  // ---------------- THEME STATE (your existing logic) ----------------
   const [theme, setTheme] = useState<"dark" | "light">("light");
 
-  // Load theme on mount (NO DOM updates here)
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -78,11 +109,9 @@ export default function Header() {
       window.matchMedia("(prefers-color-scheme: dark)").matches;
 
     const initialTheme = stored ?? (prefersDark ? "dark" : "light");
-
     setTheme(initialTheme);
   }, []);
 
-  // Apply theme to DOM when theme changes
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -94,10 +123,7 @@ export default function Header() {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
-  // -------------------------------------------
-  // HEADER SCROLL EFFECT
-  // -------------------------------------------
-
+  // ---------------- HEADER SCROLL EFFECT (your existing logic) ----------------
   useEffect(() => {
     const header = document.querySelector<HTMLElement>(".header");
     if (!header) return;
@@ -113,77 +139,144 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // -------------------------------------------
-  // DYNAMIC LOGO (dark mode = white logo, light mode = black logo)
-  // -------------------------------------------
+  // ---------------- AUTH STATE (from /api/auth/me) ----------------
+  const [auth, setAuth] = useState<AuthState>({
+    checked: false,
+    loggedIn: false,
+    role: null,
+  });
 
-  const logoSrc = theme === "dark"
-    ? "/images/logo-light.png" // white version
-    : "/images/logo-dark.png"; // black version
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/me", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const data = (await res.json().catch(() => ({}))) as MeApiResponse;
+        const normalized = normalizeMeResponse(data);
+
+        if (cancelled) return;
+
+        setAuth({
+          checked: true,
+          loggedIn: !!normalized.loggedIn,
+          role: normalized.role ?? null,
+        });
+      } catch {
+        if (cancelled) return;
+        setAuth({ checked: true, loggedIn: false, role: null });
+      }
+    }
+
+    checkAuth();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      setAuth({ checked: true, loggedIn: false, role: null });
+      router.push("/");
+      router.refresh();
+    }
+  }
+
+  // ---------------- DYNAMIC LOGO ----------------
+  const logoSrc =
+    theme === "dark" ? "/images/logo-light.png" : "/images/logo-dark.png";
+
   return (
     <header className="header">
       <div className="container header-inner">
         <div className="header-left">
           <Link href="/" className="logo-wrap">
-            <Image
-              src={logoSrc}
-              alt="Logo"
-              width={1600}
-              height={50}
-              className="logo"
-            />
+            <Image src={logoSrc} alt="Logo" width={1600} height={50} className="logo" />
           </Link>
         </div>
+
         <div className="header-right">
-          {/* Desktop nav (mobile is hidden via CSS) */}
           <nav className="nav">
             {navItems.map((item) => {
               const isActive =
-                item.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(item.href);
+                item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
               return (
                 <div key={item.href} className="nav-item-wrapper">
-                  <Link
-                    href={item.href}
-                    className={`nav-link ${isActive ? "active" : ""}`}
-                  >
+                  <Link href={item.href} className={`nav-link ${isActive ? "active" : ""}`}>
                     {item.label}
                   </Link>
 
                   {item.mega && (
                     <div className="mega-menu">
-                      {/* ... same mega menu code ... */}
+                      <div className="mega-inner">
+                        {item.columns?.map((col, index) => (
+                          <div key={index} className="mega-col">
+                            <h4>{col.heading}</h4>
+                            <ul>
+                              {col.links.map((link) => (
+                                <li key={link.href}>
+                                  <Link href={link.href}>{link.label}</Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
               );
             })}
 
-            {/* CUSTOMER AUTH BUTTONS */}
-            <div className="auth-buttons">
-              <Link href="/login" className="nav-auth-btn login-btn">
-                Login
-              </Link>
-              <Link href="/signup" className="nav-auth-btn signup-btn">
-                Signup
-              </Link>
-            </div>
+            {/* AUTH AREA (dynamic) */}
+            {auth.checked && !auth.loggedIn && (
+              <div className="auth-buttons">
+                <Link href="/login" className="nav-auth-btn login-btn">
+                  Login
+                </Link>
+                <Link href="/signup" className="nav-auth-btn signup-btn">
+                  Signup
+                </Link>
+              </div>
+            )}
 
-            {/* Theme switch – as it is */}
+            {auth.checked && auth.loggedIn && (
+              <div className="auth-buttons">
+                {auth.role === "admin" && (
+                  <Link href="/admin/dashboard" className="nav-auth-btn login-btn">
+                    Dashboard
+                  </Link>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="nav-auth-btn signup-btn"
+                  style={{ borderRadius: 999 }}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+
+            {/* Theme switch */}
             <button
               type="button"
-              className={`theme-switch ${theme === "dark" ? "theme-switch--on" : ""
-                }`}
+              className={`theme-switch ${theme === "dark" ? "theme-switch--on" : ""}`}
               onClick={toggleTheme}
               aria-label="Toggle dark/light theme"
             >
               <span className="theme-switch-knob" />
             </button>
           </nav>
-
-
         </div>
       </div>
     </header>

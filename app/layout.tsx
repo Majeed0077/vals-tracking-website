@@ -1,8 +1,8 @@
 // app/layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
+import ClientRoot from "./ClientRoot";
+
 
 export const metadata: Metadata = {
   title: "VALS Tracking Pvt Ltd",
@@ -18,9 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div className="page">
-          <Header />
-          {children}
-          <Footer />
+          <ClientRoot>{children}</ClientRoot>
         </div>
       </body>
     </html>

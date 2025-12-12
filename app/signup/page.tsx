@@ -1,4 +1,4 @@
-// app/login/page.tsx
+// app/signup/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,19 +6,18 @@ import { useEffect, useState } from "react";
 type MeResponse = {
   loggedIn?: boolean;
   role?: "admin" | "user" | null;
-
-  // (optional compatibility if your API returns different keys)
-  authenticated?: boolean;
-  user?: { role?: "admin" | "user" | null };
+  email?: string | null;
 };
 
-export default function LoginPage() {
+export default function SignupPage() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // If already logged in, redirect away from /login
+  // If already logged in, redirect away from /signup
   useEffect(() => {
     let cancelled = false;
 
@@ -29,21 +28,12 @@ export default function LoginPage() {
 
         if (cancelled) return;
 
-        // Prefer your new shape: { loggedIn, role }
-        const loggedIn =
-          typeof me.loggedIn === "boolean"
-            ? me.loggedIn
-            : !!me.authenticated;
-
-        const role =
-          me.role ?? me.user?.role ?? null;
-
-        if (loggedIn) {
+        if (me?.loggedIn) {
           window.location.href =
-            role === "admin" ? "/admin/dashboard" : "/store";
+            me.role === "admin" ? "/admin/dashboard" : "/store";
         }
       } catch {
-        // ignore errors -> show login form
+        // ignore -> show signup
       }
     })();
 
@@ -58,25 +48,21 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data.success) {
-        setError(data.message || "Invalid credentials");
+        setError(data.message || "Signup failed");
         return;
       }
 
-      // login success -> cookie is already set by backend
-      if (data.role === "admin") {
-        window.location.href = "/admin/dashboard";
-      } else {
-        window.location.href = "/store";
-      }
+      // cookie set by backend
+      window.location.href = "/store";
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Please try again.");
@@ -88,17 +74,26 @@ export default function LoginPage() {
   return (
     <main className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-title">Login</h1>
+        <h1 className="auth-title">Signup</h1>
 
         {error && <p className="auth-error">{error}</p>}
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-field">
-            <label htmlFor="email" className="contact-label">
-              Email
-            </label>
+            <label className="contact-label">Name</label>
             <input
-              id="email"
+              type="text"
+              className="contact-input"
+              placeholder="Your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
+            />
+          </div>
+
+          <div className="auth-field">
+            <label className="contact-label">Email</label>
+            <input
               type="email"
               className="contact-input"
               placeholder="you@example.com"
@@ -109,17 +104,14 @@ export default function LoginPage() {
           </div>
 
           <div className="auth-field">
-            <label htmlFor="password" className="contact-label">
-              Password
-            </label>
+            <label className="contact-label">Password</label>
             <input
-              id="password"
               type="password"
               className="contact-input"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
+              autoComplete="new-password"
             />
           </div>
 
@@ -128,7 +120,7 @@ export default function LoginPage() {
             className="btn btn-primary auth-submit"
             disabled={loading}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Creating account..." : "Create Account"}
           </button>
         </form>
       </div>

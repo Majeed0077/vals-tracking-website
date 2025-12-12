@@ -1,6 +1,18 @@
+// app/api/products/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+
+export const dynamic = "force-dynamic";
+
+function slugify(value: unknown) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/['"]/g, "")          // remove quotes
+    .replace(/[^a-z0-9]+/g, "-")   // non-alnum -> hyphen
+    .replace(/^-+|-+$/g, "");      // trim hyphens
+}
 
 // POST /api/products – create new product
 export async function POST(req: NextRequest) {
@@ -8,17 +20,9 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const body = await req.json();
 
-    const {
-      name,
-      slug,
-      price,
-      image,
-      category,
-      stock,
-      badge,
-    } = body;
+    const { name, slug, price, image, category, stock, badge, description } = body;
 
-    // Required fields (category optional in UI, so don't enforce here)
+    // Required fields
     const requiredFields: Record<string, unknown> = {
       name,
       slug,
@@ -56,8 +60,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Unique slug check
-    const existing = await Product.findOne({ slug });
+    // ✅ Normalize slug (IMPORTANT)
+    const cleanSlug = slugify(slug);
+    if (!cleanSlug) {
+      return NextResponse.json(
+        { success: false, message: "slug is invalid" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Unique slug check (normalized)
+    const existing = await Product.findOne({ slug: cleanSlug }).lean();
     if (existing) {
       return NextResponse.json(
         { success: false, message: "Slug already exists" },
@@ -66,28 +79,23 @@ export async function POST(req: NextRequest) {
     }
 
     const product = await Product.create({
-      name,
-      slug,
+      name: String(name).trim(),
+      slug: cleanSlug, // ✅ always store normalized
       price: numericPrice,
       image,
       category,
       stock: numericStock,
       badge,
+      description: description ?? "",
     });
 
-    return NextResponse.json(
-      { success: true, product },
-      { status: 201 }
-    );
+    return NextResponse.json({ success: true, product }, { status: 201 });
   } catch (error) {
     console.error("POST /api/products error:", error);
     return NextResponse.json(
       {
         success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to create product",
+        message: error instanceof Error ? error.message : "Failed to create product",
       },
       { status: 500 }
     );
@@ -98,17 +106,14 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   try {
     await connectDB();
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find().sort({ createdAt: -1 }).lean();
     return NextResponse.json({ success: true, products });
   } catch (error) {
     console.error("GET /api/products error:", error);
     return NextResponse.json(
       {
         success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch products",
+        message: error instanceof Error ? error.message : "Failed to fetch products",
       },
       { status: 500 }
     );
