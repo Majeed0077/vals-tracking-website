@@ -86,6 +86,7 @@ export default function AdminDashboardPage() {
 
   // file input ref (to clear chosen filename)
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
 
   // Derived stats
   const totalProducts = products.length;
@@ -93,6 +94,15 @@ export default function AdminDashboardPage() {
   // placeholders for now – orders system baad me add karenge
   const totalOrders = 0;
   const totalRevenue = 0;
+
+  const isCreateMode = !editingId;
+
+  function clearObjectUrl() {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+  }
 
   async function loadProducts() {
     try {
@@ -157,6 +167,7 @@ export default function AdminDashboardPage() {
     const file = e.target.files?.[0] || null;
 
     if (!file) {
+      clearObjectUrl();
       setImageFile(null);
       setImagePreview("");
       return;
@@ -167,6 +178,7 @@ export default function AdminDashboardPage() {
     if (!allowedTypes.includes(file.type)) {
       setError("Only PNG, JPG, JPEG, or WEBP images are allowed.");
       e.target.value = "";
+      clearObjectUrl();
       setImageFile(null);
       setImagePreview("");
       return;
@@ -175,13 +187,16 @@ export default function AdminDashboardPage() {
     setError(null);
     setImageFile(file);
 
+    clearObjectUrl();
     const previewUrl = URL.createObjectURL(file);
+    objectUrlRef.current = previewUrl;
     setImagePreview(previewUrl);
   }
 
   function resetForm() {
     setForm(INITIAL_FORM);
     setEditingId(null);
+    clearObjectUrl();
     setImageFile(null);
     setImagePreview("");
 
@@ -227,6 +242,10 @@ export default function AdminDashboardPage() {
         Number.isNaN(payload.price)
       ) {
         throw new Error("Name, slug, image, and price are required.");
+      }
+
+      if (payload.price < 0) {
+        throw new Error("Price cannot be negative.");
       }
 
       const url = editingId ? `/api/products/${editingId}` : "/api/products";
@@ -279,6 +298,7 @@ export default function AdminDashboardPage() {
       badge: product.badge || "",
     });
 
+    clearObjectUrl();
     setImageFile(null);
     if (typeof product.image === "string") {
       setImagePreview(product.image);
@@ -289,6 +309,12 @@ export default function AdminDashboardPage() {
       fileInputRef.current.value = "";
     }
   }
+
+  useEffect(() => {
+    return () => {
+      clearObjectUrl();
+    };
+  }, []);
 
   async function deleteProduct(id: string) {
     if (!confirm("Delete this product?")) return;
@@ -333,18 +359,9 @@ export default function AdminDashboardPage() {
     <main className="section-block">
       <div className="container">
         {/* Top heading + actions */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 16,
-            marginBottom: 24,
-            marginTop: 32,
-          }}
-        >
-          <div>
-            <h1 className="page-hero-title" style={{ marginBottom: 4 }}>
+        <div className="admin-header">
+          <div className="admin-header-text">
+            <h1 className="page-hero-title admin-title">
               Admin Dashboard
             </h1>
             <p className="page-hero-subtitle">
@@ -352,14 +369,13 @@ export default function AdminDashboardPage() {
             </p>
           </div>
 
-          <div style={{ display: "flex", gap: 10 }}>
-            <Link href="/store" className="btn btn-primary">
+          <div className="admin-header-actions">
+            <Link href="/store" className="btn btn-secondary">
               View Store
             </Link>
             <Link
               href="#product-form"
               className="btn btn-primary"
-              style={{ borderRadius: 999 }}
             >
               + Add Product
             </Link>
@@ -367,14 +383,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Stats cards */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: 16,
-            marginBottom: 32,
-          }}
-        >
+        <div className="admin-stats-grid">
           <div className="admin-stat-card">
             <p className="admin-stat-label">Total Products</p>
             <p className="admin-stat-value">{totalProducts}</p>
@@ -417,8 +426,8 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="btn"
-                style={{ fontSize: ".8rem", padding: "4px 10px" }}
+                className="btn btn-secondary admin-cancel-btn"
+                disabled={saving}
               >
                 Cancel edit
               </button>
@@ -437,6 +446,7 @@ export default function AdminDashboardPage() {
                 value={form.name}
                 onChange={onChange}
                 required
+                disabled={saving}
               />
             </div>
 
@@ -452,6 +462,7 @@ export default function AdminDashboardPage() {
                 onChange={onChange}
                 placeholder="e.g. vals-basic-plan"
                 required
+                disabled={saving}
               />
             </div>
 
@@ -468,14 +479,27 @@ export default function AdminDashboardPage() {
                 accept="image/png,image/jpeg,image/jpg,image/webp"
                 className="form-input"
                 onChange={handleImageChange}
+                required={isCreateMode}
+                disabled={saving}
               />
               {imagePreview && (
-                <p
-                  className="admin-form-subtitle"
-                  style={{ marginTop: 4, fontSize: "0.75rem" }}
-                >
-                  Image selected – will be saved with this product.
-                </p>
+                <div style={{ marginTop: 6, display: "flex", gap: 8, alignItems: "center" }}>
+                  <Image
+                    src={imagePreview}
+                    alt="Selected product"
+                    width={48}
+                    height={48}
+                    unoptimized
+                    style={{
+                      objectFit: "cover",
+                      borderRadius: 8,
+                      border: "1px solid rgba(148, 163, 184, 0.5)",
+                    }}
+                  />
+                  <p className="admin-form-subtitle" style={{ fontSize: "0.75rem", margin: 0 }}>
+                    Image selected – will be saved with this product.
+                  </p>
+                </div>
               )}
             </div>
 
@@ -490,6 +514,7 @@ export default function AdminDashboardPage() {
                 value={form.category}
                 onChange={onChange}
                 placeholder="e.g. subscription"
+                disabled={saving}
               />
             </div>
 
@@ -507,6 +532,7 @@ export default function AdminDashboardPage() {
                 value={form.price}
                 onChange={onChange}
                 required
+                disabled={saving}
               />
             </div>
 
@@ -523,6 +549,7 @@ export default function AdminDashboardPage() {
                 className="form-input"
                 value={form.stock}
                 onChange={onChange}
+                disabled={saving}
               />
             </div>
 
@@ -537,6 +564,7 @@ export default function AdminDashboardPage() {
                 value={form.badge}
                 onChange={onChange}
                 placeholder="e.g. Best Seller"
+                disabled={saving}
               />
             </div>
 
@@ -556,39 +584,25 @@ export default function AdminDashboardPage() {
 
         {/* Products table */}
         <section>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 12,
-            }}
-          >
-            <h2 style={{ fontSize: "1rem", fontWeight: 600 }}>
-              Products ({totalProducts})
+          <div className="admin-table-header">
+            <h2 className="admin-table-title">
+              Products <span className="admin-count-pill">{totalProducts}</span>
             </h2>
-            <span style={{ fontSize: ".8rem", opacity: 0.75 }}>
+            <span className="admin-table-subtitle">
               Latest added products
             </span>
           </div>
 
           <div className="admin-table-wrapper">
             {loading && products.length === 0 ? (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: 24,
-                  fontSize: ".9rem",
-                  opacity: 0.7,
-                }}
-              >
+              <div className="admin-table-empty">
                 Loading products...
               </div>
             ) : products.length === 0 ? (
               <table className="admin-table">
                 <tbody>
                   <tr>
-                    <td colSpan={9} style={{ textAlign: "center", padding: 24 }}>
+                    <td colSpan={9} className="admin-table-empty">
                       No products found. Use <strong>“+ Add Product”</strong> to
                       create one.
                     </td>
@@ -640,23 +654,18 @@ export default function AdminDashboardPage() {
                       <td>
                         {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "-"}
                       </td>
-                      <td style={{ textAlign: "right" }}>
+                      <td className="admin-table-actions">
                         <button
                           onClick={() => startEdit(p)}
-                          style={{
-                            fontSize: ".8rem",
-                            marginRight: 8,
-                            color: "#2563eb",
-                          }}
+                          disabled={saving}
+                          className="admin-action-btn admin-action-edit"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => deleteProduct(p._id)}
-                          style={{
-                            fontSize: ".8rem",
-                            color: "#dc2626",
-                          }}
+                          disabled={saving}
+                          className="admin-action-btn admin-action-delete"
                         >
                           Delete
                         </button>

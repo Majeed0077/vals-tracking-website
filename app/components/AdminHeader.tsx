@@ -47,6 +47,16 @@ export default function AdminHeader() {
     return pathname === href;
   };
 
+  const handleProductsClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const section = document.getElementById("product-form");
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      router.push("/admin/dashboard#product-form");
+    }
+  };
+
   async function handleLogout() {
     try {
       setLoggingOut(true);
@@ -96,7 +106,7 @@ export default function AdminHeader() {
             Overview
           </Link>
 
-          <a href="#product-form" className="nav-link">
+          <a href="#product-form" className="nav-link" onClick={handleProductsClick}>
             Products
           </a>
 

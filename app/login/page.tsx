@@ -2,6 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type MeResponse = {
   loggedIn?: boolean;
@@ -13,10 +15,13 @@ type MeResponse = {
 };
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
 
   // If already logged in, redirect away from /login
   useEffect(() => {
@@ -39,29 +44,40 @@ export default function LoginPage() {
           me.role ?? me.user?.role ?? null;
 
         if (loggedIn) {
-          window.location.href =
-            role === "admin" ? "/admin/dashboard" : "/store";
+          router.replace(role === "admin" ? "/admin/dashboard" : "/store");
+          return;
         }
       } catch {
         // ignore errors -> show login form
+      } finally {
+        if (!cancelled) {
+          setChecking(false);
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail || !password) {
+      setError("Email and password are required.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: trimmedEmail, password }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -73,9 +89,9 @@ export default function LoginPage() {
 
       // login success -> cookie is already set by backend
       if (data.role === "admin") {
-        window.location.href = "/admin/dashboard";
+        router.replace("/admin/dashboard");
       } else {
-        window.location.href = "/store";
+        router.replace("/store");
       }
     } catch (err) {
       console.error(err);
@@ -85,12 +101,24 @@ export default function LoginPage() {
     }
   }
 
+  if (checking) {
+    return (
+      <main className="auth-page">
+        <div className="auth-card auth-loading">Checking session...</div>
+      </main>
+    );
+  }
+
   return (
     <main className="auth-page">
       <div className="auth-card">
         <h1 className="auth-title">Login</h1>
 
-        {error && <p className="auth-error">{error}</p>}
+        {error && (
+          <p className="auth-error" role="alert" aria-live="polite">
+            {error}
+          </p>
+        )}
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-field">
@@ -105,6 +133,8 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
+              required
+              disabled={loading}
             />
           </div>
 
@@ -112,15 +142,29 @@ export default function LoginPage() {
             <label htmlFor="password" className="contact-label">
               Password
             </label>
-            <input
-              id="password"
-              type="password"
-              className="contact-input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-            />
+            <div className="password-row">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                className="contact-input"
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                disabled={loading}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-pressed={showPassword}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                disabled={loading}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
 
           <button
@@ -131,7 +175,14 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+        <div className="auth-alt">
+          <span className="auth-alt-text">New here?</span>
+          <Link className="btn auth-alt-btn" href="/signup">
+            Sign up
+          </Link>
+        </div>
       </div>
     </main>
   );
 }
+

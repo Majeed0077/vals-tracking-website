@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 
@@ -42,6 +43,9 @@ export default async function StorePage() {
     category: doc.category,
   }));
 
+  const formatPrice = (value: number) =>
+    Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 });
+
   return (
     <>
       <section className="page-hero">
@@ -63,26 +67,39 @@ export default async function StorePage() {
               </p>
             </header>
 
-            <div className="store-grid">
-              {products.map((p) => (
-                <article className="store-card" key={p._id}>
-                  {p.badge && <span className="store-badge-top">{p.badge}</span>}
+            {products.length === 0 ? (
+              <div className="store-empty">
+                <h3>No products available yet.</h3>
+                <p>Check back soon for new devices and tracking hardware.</p>
+              </div>
+            ) : (
+              <div className="store-grid">
+                {products.map((p) => (
+                  <article className="store-card" key={p._id}>
+                    {p.badge && <span className="store-badge-top">{p.badge}</span>}
 
-                  <div className="store-image-box">
-                    <img src={p.image} alt={p.name} className="store-image" />
-                  </div>
+                    <div className="store-image-box">
+                      <Image
+                        src={p.image}
+                        alt={p.name}
+                        className="store-image"
+                        width={320}
+                        height={320}
+                        unoptimized
+                      />
+                    </div>
 
-                  <h3 className="store-title">{p.name}</h3>
-                  <p className="store-price">
-                    Rs {Number(p.price).toLocaleString()}
-                  </p>
+                    {p.category && <span className="store-category">{p.category}</span>}
+                    <h3 className="store-title">{p.name}</h3>
+                    <p className="store-price">Rs {formatPrice(p.price)}</p>
 
-                  <Link href={`/store/${p.slug}`} className="btn btn-primary store-btn">
-                    Order Now
-                  </Link>
-                </article>
-              ))}
-            </div>
+                    <Link href={`/store/${p.slug}`} className="btn btn-primary store-btn">
+                      Order Now
+                    </Link>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </main>

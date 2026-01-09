@@ -3,6 +3,7 @@ import Link from "next/link";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import Image from "next/image";
+import BuyNowActions from "@/app/components/BuyNowActions";
 
 export const dynamic = "force-dynamic";
 
@@ -104,7 +105,7 @@ export default async function ProductDetailPage({
                   style={{
                     position: "relative",
                     width: "100%",
-                    maxWidth: 520,
+                    maxWidth: 420,
                     aspectRatio: "1 / 1",
                     borderRadius: 16,
                     overflow: "hidden",
@@ -188,39 +189,11 @@ export default async function ProductDetailPage({
                   <li>Local support &amp; installation assistance available</li>
                 </ul>
 
-                {/* Quantity + primary actions */}
-                <div className="product-actions">
-                  <div className="product-qty">
-                    <button type="button" aria-label="Decrease quantity">
-                      -
-                    </button>
-                    <input type="number" min={1} defaultValue={1} />
-                    <button type="button" aria-label="Increase quantity">
-                      +
-                    </button>
-                  </div>
-
-                  <button type="button" className="btn btn-primary product-add-btn">
-                    Add to Cart
-                  </button>
-
-                  <button type="button" className="btn product-buy-btn product-buy-primary">
-                    Buy Now
-                  </button>
-                </div>
-
-                {/* secondary quick links */}
-                <div className="product-links-row">
-                  <button type="button" className="product-link-btn">
-                    Size Guide
-                  </button>
-                  <button type="button" className="product-link-btn">
-                    Delivery &amp; Return
-                  </button>
-                  <button type="button" className="product-link-btn">
-                    Ask a Question
-                  </button>
-                </div>
+                <BuyNowActions
+                  name={product.name}
+                  price={product.price}
+                  slug={product.slug}
+                />
 
                 {/* trust + meta */}
                 <div className="product-meta-row">

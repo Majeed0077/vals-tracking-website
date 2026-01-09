@@ -92,6 +92,8 @@ function normalizeMeResponse(
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeMega, setActiveMega] = useState<string | null>(null);
 
   // ---------------- THEME STATE (your existing logic) ----------------
   const [theme, setTheme] = useState<"dark" | "light">("light");
@@ -179,6 +181,11 @@ export default function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    setMobileOpen(false);
+    setActiveMega(null);
+  }, [pathname]);
+
   async function handleLogout() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
@@ -203,14 +210,25 @@ export default function Header() {
         </div>
 
         <div className="header-right">
-          <nav className="nav">
+          <nav className="nav nav-desktop">
             {navItems.map((item) => {
               const isActive =
                 item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
               return (
-                <div key={item.href} className="nav-item-wrapper">
-                  <Link href={item.href} className={`nav-link ${isActive ? "active" : ""}`}>
+                <div
+                  key={item.href}
+                  className={`nav-item-wrapper${item.mega ? " nav-item-wrapper--mega" : ""}`}
+                  onMouseEnter={() => item.mega && setActiveMega(item.href)}
+                  onMouseLeave={() => item.mega && setActiveMega(null)}
+                >
+                  <Link
+                    href={item.href}
+                    className={`nav-link ${isActive ? "active" : ""}`}
+                    aria-current={isActive ? "page" : undefined}
+                    aria-haspopup={item.mega ? "true" : undefined}
+                    aria-expanded={item.mega ? activeMega === item.href : undefined}
+                  >
                     {item.label}
                   </Link>
 
@@ -237,6 +255,7 @@ export default function Header() {
             })}
 
             {/* AUTH AREA (dynamic) */}
+            {!auth.checked && <span className="nav-loading">Checking...</span>}
             {auth.checked && !auth.loggedIn && (
               <div className="auth-buttons">
                 <Link href="/login" className="nav-auth-btn login-btn">
@@ -260,7 +279,6 @@ export default function Header() {
                   type="button"
                   onClick={handleLogout}
                   className="nav-auth-btn signup-btn"
-                  style={{ borderRadius: 999 }}
                 >
                   Logout
                 </button>
@@ -277,6 +295,106 @@ export default function Header() {
               <span className="theme-switch-knob" />
             </button>
           </nav>
+
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-menu"
+            onClick={() => setMobileOpen((prev) => !prev)}
+          >
+            <span className="nav-toggle-bar" />
+            <span className="nav-toggle-bar" />
+            <span className="nav-toggle-bar" />
+          </button>
+        </div>
+      </div>
+
+      <div id="mobile-menu" className={`mobile-menu ${mobileOpen ? "open" : ""}`}>
+        <div className="container mobile-menu-inner">
+          <div className="mobile-nav">
+            {navItems.map((item) => {
+              const isActive =
+                item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+
+              if (item.mega) {
+                return (
+                  <details key={item.href} className="mobile-nav-item">
+                    <summary className="mobile-nav-link">
+                      {item.label}
+                    </summary>
+                    <div className="mobile-mega">
+                      {item.columns?.map((col) => (
+                        <div key={col.heading} className="mobile-mega-col">
+                          <span className="mobile-mega-title">{col.heading}</span>
+                          <ul>
+                            {col.links.map((link) => (
+                              <li key={link.href}>
+                                <Link href={link.href}>{link.label}</Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`mobile-nav-link ${isActive ? "active" : ""}`}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="mobile-auth">
+            {!auth.checked && <span className="nav-loading">Checking...</span>}
+            {auth.checked && !auth.loggedIn && (
+              <div className="auth-buttons">
+                <Link href="/login" className="nav-auth-btn login-btn">
+                  Login
+                </Link>
+                <Link href="/signup" className="nav-auth-btn signup-btn">
+                  Signup
+                </Link>
+              </div>
+            )}
+            {auth.checked && auth.loggedIn && (
+              <div className="auth-buttons">
+                {auth.role === "admin" && (
+                  <Link href="/admin/dashboard" className="nav-auth-btn login-btn">
+                    Dashboard
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="nav-auth-btn signup-btn"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="mobile-theme">
+            <span className="mobile-theme-label">Theme</span>
+            <button
+              type="button"
+              className={`theme-switch ${theme === "dark" ? "theme-switch--on" : ""}`}
+              onClick={toggleTheme}
+              aria-label="Toggle dark/light theme"
+            >
+              <span className="theme-switch-knob" />
+            </button>
+          </div>
         </div>
       </div>
     </header>

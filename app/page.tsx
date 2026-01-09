@@ -1,5 +1,6 @@
 // app/page.tsx
 import Image from "next/image";
+import Link from "next/link";
 export default function HomePage() {
   return (
     <>
@@ -8,6 +9,7 @@ export default function HomePage() {
         <div className="container hero-inner">
           {/* LEFT TEXT */}
           <div className="hero-copy">
+            <span className="hero-badge">Pakistan-wide GPS and fleet ops</span>
             <h1 className="hero-title">
               RELIABLE FLEET
               <br />
@@ -22,9 +24,36 @@ export default function HomePage() {
               and comprehensive management solutions.
             </p>
 
-            <a href="#" className="btn btn-primary hero-btn">
-              Get a Quote
-            </a>
+            <div className="hero-actions">
+              <Link href="/contact" className="btn btn-primary hero-btn">
+                Get a Quote
+              </Link>
+              <Link href="/packages" className="btn btn-secondary hero-btn">
+                View Packages
+              </Link>
+            </div>
+
+            <div className="hero-metrics">
+              <div className="hero-metric">
+                <strong>500+</strong>
+                <span>Fleets connected</span>
+              </div>
+              <div className="hero-metric">
+                <strong>24/7</strong>
+                <span>Monitoring center</span>
+              </div>
+              <div className="hero-metric">
+                <strong>99.9%</strong>
+                <span>Uptime SLA</span>
+              </div>
+            </div>
+
+            <div className="hero-trust">
+              <span className="trust-pill">Logistics</span>
+              <span className="trust-pill">Cold Chain</span>
+              <span className="trust-pill">Construction</span>
+              <span className="trust-pill">Public Transport</span>
+            </div>
           </div>
 
           {/* RIGHT MEDIA – dashboard only */}
@@ -50,19 +79,31 @@ export default function HomePage() {
           <div className="why-grid">
             <div className="why-item">
               <span className="tick"></span>
-              <span>Since 2016</span>
+              <div className="why-text">
+                <span className="why-title">Since 2016</span>
+                <span className="why-sub">Field-proven deployments</span>
+              </div>
             </div>
             <div className="why-item">
               <span className="tick"></span>
-              <span>24/7 Monitoring</span>
+              <div className="why-text">
+                <span className="why-title">24/7 Monitoring</span>
+                <span className="why-sub">Always-on command center</span>
+              </div>
             </div>
             <div className="why-item">
               <span className="tick"></span>
-              <span>Pakistan-wide Coverage</span>
+              <div className="why-text">
+                <span className="why-title">Pakistan-wide Coverage</span>
+                <span className="why-sub">Urban to remote routes</span>
+              </div>
             </div>
             <div className="why-item">
               <span className="tick"></span>
-              <span>Advanced Technology</span>
+              <div className="why-text">
+                <span className="why-title">Advanced Technology</span>
+                <span className="why-sub">Smart alerts and insights</span>
+              </div>
             </div>
           </div>
         </div>
@@ -70,7 +111,15 @@ export default function HomePage() {
       {/* OUR SERVICES */}
       <section className="services">
         <div className="container">
-          <h2 className="section-title">Our Services</h2>
+          <div className="section-head">
+            <h2 className="section-title">Our Services</h2>
+            <Link href="/services" className="section-action">
+              View all services
+            </Link>
+          </div>
+          <p className="section-lead">
+            Full-stack tracking solutions built for logistics, field teams, and high-value assets.
+          </p>
 
           <div className="cards-grid">
             {/* Vehicle Tracking */}
@@ -95,9 +144,9 @@ export default function HomePage() {
               <p className="card-text">
                 Track and control your vehicles in real-time.
               </p>
-              <a href="#" className="card-link">
+              <Link href="/services/vehicle-tracking" className="card-link">
                 Learn More &gt;
-              </a>
+              </Link>
             </article>
 
             {/* Asset Tracking */}
@@ -122,9 +171,9 @@ export default function HomePage() {
               <p className="card-text">
                 Monitor valuable assets with precision.
               </p>
-              <a href="#" className="card-link">
+              <Link href="/services/asset-tracking" className="card-link">
                 Learn More &gt;
-              </a>
+              </Link>
             </article>
 
             {/* Fleet Management */}
@@ -150,9 +199,9 @@ export default function HomePage() {
               <p className="card-text">
                 Improve efficiency with our fleet management system.
               </p>
-              <a href="#" className="card-link">
+              <Link href="/services/fleet-management" className="card-link">
                 Learn More &gt;
-              </a>
+              </Link>
             </article>
 
             {/* Cold Chain Monitoring */}
@@ -178,9 +227,9 @@ export default function HomePage() {
               <p className="card-text">
                 Ensure the integrity of temperature-sensitive shipments.
               </p>
-              <a href="#" className="card-link">
+              <Link href="/services/cold-chain" className="card-link">
                 Learn More &gt;
-              </a>
+              </Link>
             </article>
           </div>
         </div>
@@ -211,9 +260,9 @@ export default function HomePage() {
                 <li>Geofencing</li>
                 <li>Mobile Access</li>
               </ul>
-              <a href="#" className="btn btn-primary price-btn">
+              <Link href="/contact" className="btn btn-primary price-btn">
                 Get Started
-              </a>
+              </Link>
             </article>
 
             <article className="price-card price-card-highlight">
@@ -228,9 +277,9 @@ export default function HomePage() {
                 <li>Geofencing</li>
                 <li>Mobile Access</li>
               </ul>
-              <a href="#" className="btn btn-primary price-btn">
+              <Link href="/contact" className="btn btn-primary price-btn">
                 Get Started
-              </a>
+              </Link>
             </article>
 
             <article className="price-card">
@@ -244,10 +293,31 @@ export default function HomePage() {
                 <li>Geofencing</li>
                 <li>Mobile Access</li>
               </ul>
-              <a href="#" className="btn btn-primary price-btn">
+              <Link href="/contact" className="btn btn-primary price-btn">
                 Get Started
-              </a>
+              </Link>
             </article>
+          </div>
+        </div>
+      </section>
+
+      <section className="cta-section">
+        <div className="container">
+          <div className="cta-card">
+            <div>
+              <h2 className="cta-title">Ready to optimize your fleet?</h2>
+              <p className="cta-text">
+                Talk to our team for a tailored tracking plan, installation support, and a demo.
+              </p>
+            </div>
+            <div className="cta-actions">
+              <Link href="/contact" className="btn btn-primary">
+                Book a Demo
+              </Link>
+              <Link href="/packages" className="btn btn-secondary">
+                Compare Plans
+              </Link>
+            </div>
           </div>
         </div>
       </section>
