@@ -86,12 +86,24 @@ export default async function ProductDetailPage({
         </div>
       </section>
 
-      {/* BACK BUTTON RIGHT UNDER HERO */}
-      <div className="container" style={{ marginTop: "10px" }}>
+      <div className="container product-back-row">
         <Link href="/store" className="product-back-top">
-          ← Back to all products
+          <span className="btn-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M15 18l-6-6 6-6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Back to all products
+          </span>
         </Link>
       </div>
+
 
       <main>
         <section className="section-block">
@@ -100,23 +112,13 @@ export default async function ProductDetailPage({
               {/* LEFT: image */}
               <div className="product-media">
                 {/* MAIN IMAGE */}
-                <div
-                  className="product-main-image"
-                  style={{
-                    position: "relative",
-                    width: "100%",
-                    maxWidth: 420,
-                    aspectRatio: "1 / 1",
-                    borderRadius: 16,
-                    overflow: "hidden",
-                  }}
-                >
+                <div className="product-main-image">
                   <Image
                     src={product.image}
                     alt={product.name}
                     fill
                     sizes="(max-width: 768px) 100vw, 520px"
-                    style={{ objectFit: "cover" }}
+                    className="product-main-photo"
                     priority
                     unoptimized
                   />
@@ -130,7 +132,7 @@ export default async function ProductDetailPage({
                       alt={product.name}
                       width={80}
                       height={80}
-                      style={{ objectFit: "cover", borderRadius: 12 }}
+                      className="product-thumb-image"
                       unoptimized
                     />
                   </div>
@@ -145,7 +147,16 @@ export default async function ProductDetailPage({
                   )}
 
                   <div className="product-rating-row">
-                    <span className="product-stars">★★★★★</span>
+                                        <span className="product-stars" aria-hidden="true">
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <svg key={index} viewBox="0 0 24 24">
+                          <path
+                            d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.8 1-6.1-4.4-4.3 6.1-.9L12 3Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      ))}
+                    </span>
                     <span className="product-reviews">(1 customer review)</span>
                   </div>
                 </div>
@@ -173,7 +184,7 @@ export default async function ProductDetailPage({
                       <div className="product-stock-bar-fill" />
                     </div>
                     <p className="product-stock-hint">
-                      High demand – secure your device today.
+                      High demand - secure your device today.
                     </p>
                   </div>
                 )}
@@ -190,9 +201,11 @@ export default async function ProductDetailPage({
                 </ul>
 
                 <BuyNowActions
+                  id={product.id}
                   name={product.name}
                   price={product.price}
                   slug={product.slug}
+                  image={product.image}
                 />
 
                 {/* trust + meta */}

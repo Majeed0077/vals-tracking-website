@@ -2,13 +2,17 @@
 "use client";
 
 import {
+  memo,
+  useCallback,
   useEffect,
-  useState,
+  useMemo,
   useRef,
+  useState,
   type ChangeEvent,
   type FormEvent,
 } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 // You can keep this if you really want to force dynamic behavior for Netlify
@@ -73,6 +77,7 @@ function getErrorMessage(err: unknown, fallback: string): string {
 }
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -89,22 +94,26 @@ export default function AdminDashboardPage() {
   const objectUrlRef = useRef<string | null>(null);
 
   // Derived stats
-  const totalProducts = products.length;
-  const totalStock = products.reduce((sum, p) => sum + (p.stock ?? 0), 0);
+  const { totalProducts, totalStock } = useMemo(() => {
+    return {
+      totalProducts: products.length,
+      totalStock: products.reduce((sum, p) => sum + (p.stock ?? 0), 0),
+    };
+  }, [products]);
   // placeholders for now – orders system baad me add karenge
   const totalOrders = 0;
   const totalRevenue = 0;
 
   const isCreateMode = !editingId;
 
-  function clearObjectUrl() {
+  const clearObjectUrl = useCallback(() => {
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
       objectUrlRef.current = null;
     }
-  }
+  }, []);
 
-  async function loadProducts() {
+  const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -149,51 +158,61 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [loadProducts]);
 
-  function onChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  }
+  useEffect(() => {
+    router.prefetch("/store");
+  }, [router]);
 
-  function handleImageChange(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] || null;
+  const onChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    },
+    []
+  );
 
-    if (!file) {
+  const handleImageChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0] || null;
+
+      if (!file) {
+        clearObjectUrl();
+        setImageFile(null);
+        setImagePreview("");
+        return;
+      }
+
+      // allow only png / jpg / jpeg / webp
+      const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        setError("Only PNG, JPG, JPEG, or WEBP images are allowed.");
+        e.target.value = "";
+        clearObjectUrl();
+        setImageFile(null);
+        setImagePreview("");
+        return;
+      }
+
+      setError(null);
+      setImageFile(file);
+
       clearObjectUrl();
-      setImageFile(null);
-      setImagePreview("");
-      return;
-    }
+      const previewUrl = URL.createObjectURL(file);
+      objectUrlRef.current = previewUrl;
+      setImagePreview(previewUrl);
+    },
+    [clearObjectUrl]
+  );
 
-    // allow only png / jpg / jpeg / webp
-    const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
-      setError("Only PNG, JPG, JPEG, or WEBP images are allowed.");
-      e.target.value = "";
-      clearObjectUrl();
-      setImageFile(null);
-      setImagePreview("");
-      return;
-    }
-
-    setError(null);
-    setImageFile(file);
-
-    clearObjectUrl();
-    const previewUrl = URL.createObjectURL(file);
-    objectUrlRef.current = previewUrl;
-    setImagePreview(previewUrl);
-  }
-
-  function resetForm() {
+  const resetForm = useCallback(() => {
     setForm(INITIAL_FORM);
     setEditingId(null);
     clearObjectUrl();
@@ -204,89 +223,92 @@ export default function AdminDashboardPage() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  }
+  }, [clearObjectUrl]);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    setError(null);
+  const handleSubmit = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      setSaving(true);
+      setError(null);
 
-    try {
-      // decide which image to send
-      let imageToUse = form.image;
+      try {
+        // decide which image to send
+        let imageToUse = form.image;
 
-      // create mode: image is mandatory
-      if (!editingId && !imageFile) {
-        throw new Error("Image is required.");
-      }
+        // create mode: image is mandatory
+        if (!editingId && !imageFile) {
+          throw new Error("Image is required.");
+        }
 
-      // if new file selected (create or edit), convert to base64
-      if (imageFile) {
-        imageToUse = await fileToBase64(imageFile);
-      }
+        // if new file selected (create or edit), convert to base64
+        if (imageFile) {
+          imageToUse = await fileToBase64(imageFile);
+        }
 
-      const payload = {
-        name: form.name.trim(),
-        slug: form.slug.trim(),
-        image: imageToUse,
-        category: form.category.trim() || undefined,
-        price: Number(form.price),
-        stock: form.stock ? Number(form.stock) : undefined,
-        badge: form.badge.trim() || undefined,
-      };
+        const payload = {
+          name: form.name.trim(),
+          slug: form.slug.trim(),
+          image: imageToUse,
+          category: form.category.trim() || undefined,
+          price: Number(form.price),
+          stock: form.stock ? Number(form.stock) : undefined,
+          badge: form.badge.trim() || undefined,
+        };
 
-      if (
-        !payload.name ||
-        !payload.slug ||
-        !payload.image ||
-        Number.isNaN(payload.price)
-      ) {
-        throw new Error("Name, slug, image, and price are required.");
-      }
+        if (
+          !payload.name ||
+          !payload.slug ||
+          !payload.image ||
+          Number.isNaN(payload.price)
+        ) {
+          throw new Error("Name, slug, image, and price are required.");
+        }
 
-      if (payload.price < 0) {
-        throw new Error("Price cannot be negative.");
-      }
+        if (payload.price < 0) {
+          throw new Error("Price cannot be negative.");
+        }
 
-      const url = editingId ? `/api/products/${editingId}` : "/api/products";
-      const method = editingId ? "PUT" : "POST";
+        const url = editingId ? `/api/products/${editingId}` : "/api/products";
+        const method = editingId ? "PUT" : "POST";
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+        const res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-      const data: unknown = await res.json();
+        const data: unknown = await res.json();
 
-      const ok =
-        typeof data === "object" &&
-        data !== null &&
-        "success" in data &&
-        (data as { success: unknown }).success === true;
-
-      if (!res.ok || !ok) {
-        const message =
+        const ok =
           typeof data === "object" &&
-            data !== null &&
-            "message" in data &&
-            typeof (data as { message?: unknown }).message === "string"
-            ? (data as { message: string }).message
-            : "Failed to save product";
-        throw new Error(message);
+          data !== null &&
+          "success" in data &&
+          (data as { success: unknown }).success === true;
+
+        if (!res.ok || !ok) {
+          const message =
+            typeof data === "object" &&
+              data !== null &&
+              "message" in data &&
+              typeof (data as { message?: unknown }).message === "string"
+              ? (data as { message: string }).message
+              : "Failed to save product";
+          throw new Error(message);
+        }
+
+        await loadProducts();
+        resetForm();
+      } catch (err: unknown) {
+        console.error(err);
+        setError(getErrorMessage(err, "Unexpected error while saving product"));
+      } finally {
+        setSaving(false);
       }
+    },
+    [editingId, form, imageFile, loadProducts, resetForm]
+  );
 
-      await loadProducts();
-      resetForm();
-    } catch (err: unknown) {
-      console.error(err);
-      setError(getErrorMessage(err, "Unexpected error while saving product"));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function startEdit(product: Product) {
+  const startEdit = useCallback((product: Product) => {
     setEditingId(product._id);
     setForm({
       name: product.name || "",
@@ -308,15 +330,15 @@ export default function AdminDashboardPage() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  }
+  }, [clearObjectUrl]);
 
   useEffect(() => {
     return () => {
       clearObjectUrl();
     };
-  }, []);
+  }, [clearObjectUrl]);
 
-  async function deleteProduct(id: string) {
+  const deleteProduct = useCallback(async (id: string) => {
     if (!confirm("Delete this product?")) return;
 
     try {
@@ -353,7 +375,7 @@ export default function AdminDashboardPage() {
     } finally {
       setSaving(false);
     }
-  }
+  }, []);
 
   return (
     <main className="section-block">
@@ -582,102 +604,128 @@ export default function AdminDashboardPage() {
           </form>
         </section>
 
-        {/* Products table */}
-        <section>
-          <div className="admin-table-header">
-            <h2 className="admin-table-title">
-              Products <span className="admin-count-pill">{totalProducts}</span>
-            </h2>
-            <span className="admin-table-subtitle">
-              Latest added products
-            </span>
-          </div>
-
-          <div className="admin-table-wrapper">
-            {loading && products.length === 0 ? (
-              <div className="admin-table-empty">
-                Loading products...
-              </div>
-            ) : products.length === 0 ? (
-              <table className="admin-table">
-                <tbody>
-                  <tr>
-                    <td colSpan={9} className="admin-table-empty">
-                      No products found. Use <strong>“+ Add Product”</strong> to
-                      create one.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            ) : (
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Image</th>
-                    <th>Name</th>
-                    <th>Slug</th>
-                    <th>Category</th>
-                    <th>Price (Rs)</th>
-                    <th>Stock</th>
-                    <th>Badge</th>
-                    <th>Created</th>
-                    <th style={{ textAlign: "right" }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((p) => (
-                    <tr key={p._id}>
-                      <td>
-                        <Image
-                          src={p.image}
-                          alt={p.name}
-                          width={40}
-                          height={40}
-                          unoptimized
-                          style={{
-                            objectFit: "cover",
-                            borderRadius: 8,
-                            border: "1px solid rgba(148, 163, 184, 0.5)",
-                          }}
-                        />
-                      </td>
-                      <td>{p.name}</td>
-                      <td>{p.slug}</td>
-                      <td>{p.category}</td>
-                      <td>
-                        {Number(p.price).toLocaleString(undefined, {
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td>{p.stock ?? "-"}</td>
-                      <td>{p.badge || "-"}</td>
-                      <td>
-                        {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "-"}
-                      </td>
-                      <td className="admin-table-actions">
-                        <button
-                          onClick={() => startEdit(p)}
-                          disabled={saving}
-                          className="admin-action-btn admin-action-edit"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => deleteProduct(p._id)}
-                          disabled={saving}
-                          className="admin-action-btn admin-action-delete"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </section>
+        <ProductTable
+          products={products}
+          loading={loading}
+          saving={saving}
+          totalProducts={totalProducts}
+          onEdit={startEdit}
+          onDelete={deleteProduct}
+        />
       </div>
     </main>
   );
 }
+
+const ProductTable = memo(function ProductTable({
+  products,
+  loading,
+  saving,
+  totalProducts,
+  onEdit,
+  onDelete,
+}: {
+  products: Product[];
+  loading: boolean;
+  saving: boolean;
+  totalProducts: number;
+  onEdit: (product: Product) => void;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <section>
+      <div className="admin-table-header">
+        <h2 className="admin-table-title">
+          Products <span className="admin-count-pill">{totalProducts}</span>
+        </h2>
+        <span className="admin-table-subtitle">
+          Latest added products
+        </span>
+      </div>
+
+      <div className="admin-table-wrapper">
+        {loading && products.length === 0 ? (
+          <div className="admin-table-empty">
+            Loading products...
+          </div>
+        ) : products.length === 0 ? (
+          <table className="admin-table">
+            <tbody>
+              <tr>
+                <td colSpan={9} className="admin-table-empty">
+                  No products found. Use <strong>"+ Add Product"</strong> to
+                  create one.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        ) : (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Category</th>
+                <th>Price (Rs)</th>
+                <th>Stock</th>
+                <th>Badge</th>
+                <th>Created</th>
+                <th style={{ textAlign: "right" }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((p) => (
+                <tr key={p._id}>
+                  <td>
+                    <Image
+                      src={p.image}
+                      alt={p.name}
+                      width={40}
+                      height={40}
+                      unoptimized
+                      style={{
+                        objectFit: "cover",
+                        borderRadius: 8,
+                        border: "1px solid rgba(148, 163, 184, 0.5)",
+                      }}
+                    />
+                  </td>
+                  <td>{p.name}</td>
+                  <td>{p.slug}</td>
+                  <td>{p.category}</td>
+                  <td>
+                    {Number(p.price).toLocaleString(undefined, {
+                      maximumFractionDigits: 2,
+                    })}
+                  </td>
+                  <td>{p.stock ?? "-"}</td>
+                  <td>{p.badge || "-"}</td>
+                  <td>
+                    {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "-"}
+                  </td>
+                  <td className="admin-table-actions">
+                    <button
+                      onClick={() => onEdit(p)}
+                      disabled={saving}
+                      className="admin-action-btn admin-action-edit"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => onDelete(p._id)}
+                      disabled={saving}
+                      className="admin-action-btn admin-action-delete"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </section>
+  );
+});

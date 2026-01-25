@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function AdminHeader() {
   const pathname = usePathname();
@@ -30,24 +30,28 @@ export default function AdminHeader() {
   }, []);
 
   useEffect(() => {
+    router.prefetch("/store");
+  }, [router]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     document.documentElement.setAttribute("data-theme", theme);
     window.localStorage.setItem("vals-theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-  };
+  }, []);
 
   // ------------ NAV ACTIVE HELPERS ------------
-  const isActive = (href: string) => {
+  const isActive = useCallback((href: string) => {
     if (href === "/admin/dashboard") {
       return pathname?.startsWith("/admin");
     }
     return pathname === href;
-  };
+  }, [pathname]);
 
-  const handleProductsClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleProductsClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const section = document.getElementById("product-form");
     if (section) {
@@ -55,9 +59,9 @@ export default function AdminHeader() {
     } else {
       router.push("/admin/dashboard#product-form");
     }
-  };
+  }, [router]);
 
-  async function handleLogout() {
+  const handleLogout = useCallback(async () => {
     try {
       setLoggingOut(true);
       await fetch("/api/auth/logout", { method: "POST" });
@@ -68,7 +72,7 @@ export default function AdminHeader() {
     } finally {
       setLoggingOut(false);
     }
-  }
+  }, [router]);
 
   return (
     <header className="header">

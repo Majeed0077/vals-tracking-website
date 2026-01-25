@@ -2,18 +2,33 @@
 
 import { useMemo, useState } from "react";
 import QtySelector from "@/app/components/QtySelector";
+import { useShopStore } from "@/app/state/useShopStore";
 
 type BuyNowActionsProps = {
+  id: string;
   name: string;
   price: number;
   slug: string;
+  image: string;
 };
 
-export default function BuyNowActions({ name, price, slug }: BuyNowActionsProps) {
+export default function BuyNowActions({ id, name, price, slug, image }: BuyNowActionsProps) {
+  const addToCart = useShopStore((state) => state.addToCart);
+  const removeFromCart = useShopStore((state) => state.removeFromCart);
+  const toggleWishlist = useShopStore((state) => state.toggleWishlist);
+  const wishlist = useShopStore((state) => state.wishlist);
+  const cart = useShopStore((state) => state.cart);
   const [qty, setQty] = useState(1);
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", address: "", note: "" });
+  const inWishlist = useMemo(() => {
+    return wishlist.some((item) => item.slug === slug);
+  }, [wishlist, slug]);
+
+  const inCart = useMemo(() => {
+    return cart.some((item) => item.slug === slug);
+  }, [cart, slug]);
 
   const waLink = useMemo(() => {
     const base = "https://wa.me/923111101066";
@@ -42,6 +57,27 @@ export default function BuyNowActions({ name, price, slug }: BuyNowActionsProps)
       <div className="product-actions">
         <QtySelector value={qty} onChange={setQty} />
 
+        <button
+          type="button"
+          className="btn btn-secondary product-add-btn"
+          onClick={() =>
+            inCart
+              ? removeFromCart(id)
+              : addToCart(
+                  {
+                    id,
+                    slug,
+                    name,
+                    price,
+                    image,
+                  },
+                  qty
+                )
+          }
+        >
+          {inCart ? "Remove from Cart" : "Add to Cart"}
+        </button>
+
         <button type="button" className="btn btn-primary product-add-btn" onClick={handleCheckout}>
           Buy Now
         </button>
@@ -60,6 +96,13 @@ export default function BuyNowActions({ name, price, slug }: BuyNowActionsProps)
       </div>
 
       <div className="product-links-row">
+        <button
+          type="button"
+          className="product-link-btn"
+          onClick={() => toggleWishlist({ slug, name, price, image })}
+        >
+          {inWishlist ? "Remove Wishlist" : "Save Wishlist"}
+        </button>
         <button type="button" className="product-link-btn">
           Size Guide
         </button>

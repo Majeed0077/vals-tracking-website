@@ -1,7 +1,7 @@
-import Link from "next/link";
-import Image from "next/image";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+import StoreClient from "@/app/store/StoreClient";
+import type { StoreProduct } from "@/app/store/types";
 
 export const dynamic = "force-dynamic";
 
@@ -16,16 +16,6 @@ type ProductDoc = {
   category?: string;
 };
 
-
-type StoreProduct = {
-  _id: string;
-  name: string;
-  slug: string;
-  image: string;
-  price: number;
-  badge?: string;
-  category?: string;
-};
 
 export default async function StorePage() {
   await connectDB();
@@ -43,66 +33,5 @@ export default async function StorePage() {
     category: doc.category,
   }));
 
-  const formatPrice = (value: number) =>
-    Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 });
-
-  return (
-    <>
-      <section className="page-hero">
-        <div className="container">
-          <h1 className="page-hero-title">Store</h1>
-          <p className="page-hero-subtitle">
-            Watches, GPS devices and tracking hardware compatible with VALS Tracking.
-          </p>
-        </div>
-      </section>
-
-      <main>
-        <section className="section-block">
-          <div className="container">
-            <header className="section-header">
-              <h2 className="section-title">Products</h2>
-              <p className="section-header-text">
-                Select from our most popular GPS trackers, dash cams and smart watches.
-              </p>
-            </header>
-
-            {products.length === 0 ? (
-              <div className="store-empty">
-                <h3>No products available yet.</h3>
-                <p>Check back soon for new devices and tracking hardware.</p>
-              </div>
-            ) : (
-              <div className="store-grid">
-                {products.map((p) => (
-                  <article className="store-card" key={p._id}>
-                    {p.badge && <span className="store-badge-top">{p.badge}</span>}
-
-                    <div className="store-image-box">
-                      <Image
-                        src={p.image}
-                        alt={p.name}
-                        className="store-image"
-                        width={320}
-                        height={320}
-                        unoptimized
-                      />
-                    </div>
-
-                    {p.category && <span className="store-category">{p.category}</span>}
-                    <h3 className="store-title">{p.name}</h3>
-                    <p className="store-price">Rs {formatPrice(p.price)}</p>
-
-                    <Link href={`/store/${p.slug}`} className="btn btn-primary store-btn">
-                      Order Now
-                    </Link>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      </main>
-    </>
-  );
+  return <StoreClient products={products} />;
 }
