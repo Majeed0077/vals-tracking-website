@@ -122,6 +122,17 @@ body {
   background-attachment: fixed;
 }
 
+a,
+button,
+summary,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 .page {
   min-height: 100vh;
   display: flex;
@@ -2042,6 +2053,47 @@ html[data-theme="light"] .store-cart-summary {
 .product-main-photo {
   object-fit: contain;
   padding: 24px;
+}
+
+.product-zoom-toggle {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.product-main-image {
+  cursor: zoom-in;
+}
+
+.product-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 220;
+  cursor: zoom-out;
+  padding: 24px;
+}
+
+.product-zoom-image {
+  width: min(90vw, 960px);
+  height: auto;
+  max-height: 80vh;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: var(--r-lg);
+  padding: 18px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+}
+
+.product-zoom-toggle:checked ~ .product-zoom-overlay {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .product-thumbs {

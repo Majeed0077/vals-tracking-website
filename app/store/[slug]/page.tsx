@@ -112,7 +112,12 @@ export default async function ProductDetailPage({
               {/* LEFT: image */}
               <div className="product-media">
                 {/* MAIN IMAGE */}
-                <div className="product-main-image">
+                <input
+                  className="product-zoom-toggle"
+                  type="checkbox"
+                  id={`zoom-${product.slug}`}
+                />
+                <label className="product-main-image" htmlFor={`zoom-${product.slug}`}>
                   <Image
                     src={product.image}
                     alt={product.name}
@@ -122,7 +127,18 @@ export default async function ProductDetailPage({
                     priority
                     unoptimized
                   />
-                </div>
+                </label>
+                <label className="product-zoom-overlay" htmlFor={`zoom-${product.slug}`}>
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    width={1200}
+                    height={1200}
+                    sizes="(max-width: 1200px) 90vw, 960px"
+                    className="product-zoom-image"
+                    unoptimized
+                  />
+                </label>
 
                 {/* THUMBNAIL */}
                 <div className="product-thumbs">
