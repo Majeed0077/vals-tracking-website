@@ -296,17 +296,29 @@ export default function Header() {
             </button>
           </nav>
 
-          <button
-            type="button"
-            className="nav-toggle"
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-menu"
-            onClick={() => setMobileOpen((prev) => !prev)}
-          >
-            <span className="nav-toggle-bar" />
-            <span className="nav-toggle-bar" />
-            <span className="nav-toggle-bar" />
-          </button>
+          <div className="nav-actions">
+            <button
+              type="button"
+              className={`theme-switch mobile-theme-toggle ${
+                theme === "dark" ? "theme-switch--on" : ""
+              }`}
+              onClick={toggleTheme}
+              aria-label="Toggle dark/light theme"
+            >
+              <span className="theme-switch-knob" />
+            </button>
+            <button
+              type="button"
+              className="nav-toggle"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-menu"
+              onClick={() => setMobileOpen((prev) => !prev)}
+            >
+              <span className="nav-toggle-bar" />
+              <span className="nav-toggle-bar" />
+              <span className="nav-toggle-bar" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -384,17 +396,6 @@ export default function Header() {
             )}
           </div>
 
-          <div className="mobile-theme">
-            <span className="mobile-theme-label">Theme</span>
-            <button
-              type="button"
-              className={`theme-switch ${theme === "dark" ? "theme-switch--on" : ""}`}
-              onClick={toggleTheme}
-              aria-label="Toggle dark/light theme"
-            >
-              <span className="theme-switch-knob" />
-            </button>
-          </div>
         </div>
       </div>
     </header>
