@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useShopStore } from "@/app/state/useShopStore";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -94,6 +95,9 @@ export default function Header() {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeMega, setActiveMega] = useState<string | null>(null);
+  const cartCount = useShopStore((state) =>
+    state.cart.reduce((sum, item) => sum + item.qty, 0)
+  );
 
   // ---------------- THEME STATE (your existing logic) ----------------
   const [theme, setTheme] = useState<"dark" | "light">("light");
@@ -254,6 +258,22 @@ export default function Header() {
               );
             })}
 
+            <Link href="/store/cart" className="nav-cart-btn">
+              <span className="nav-cart-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M6 6h14l-2 8H8L6 6Zm0 0-1-3H2m6 18a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm9 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              Cart ({cartCount})
+            </Link>
+
             {/* AUTH AREA (dynamic) */}
             {!auth.checked && <span className="nav-loading">Checking...</span>}
             {auth.checked && !auth.loggedIn && (
@@ -370,6 +390,21 @@ export default function Header() {
             {!auth.checked && <span className="nav-loading">Checking...</span>}
             {auth.checked && !auth.loggedIn && (
               <div className="auth-buttons">
+                <Link href="/store/cart" className="nav-cart-btn">
+                  <span className="nav-cart-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M6 6h14l-2 8H8L6 6Zm0 0-1-3H2m6 18a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm9 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  Cart ({cartCount})
+                </Link>
                 <Link href="/login" className="nav-auth-btn login-btn">
                   Login
                 </Link>
@@ -385,6 +420,21 @@ export default function Header() {
                     Dashboard
                   </Link>
                 )}
+                <Link href="/store/cart" className="nav-cart-btn">
+                  <span className="nav-cart-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M6 6h14l-2 8H8L6 6Zm0 0-1-3H2m6 18a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm9 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  Cart ({cartCount})
+                </Link>
                 <button
                   type="button"
                   onClick={handleLogout}

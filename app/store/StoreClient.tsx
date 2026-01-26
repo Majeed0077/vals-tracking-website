@@ -43,7 +43,6 @@ export default function StoreClient({ products }: StoreClientProps) {
     setSort,
     setPage,
     setPerPage,
-    resetFilters,
   } = useShopStore((state) => state);
 
   const [searchInput, setSearchInput] = useState(search);
@@ -124,141 +123,113 @@ export default function StoreClient({ products }: StoreClientProps) {
       <main>
         <section className="section-block">
           <div className="container store-container">
-            <header className="section-header store-header">
-              <div>
-                <h2 className="section-title">Products</h2>
-                <p className="section-header-text">
-                  Select from our most popular GPS trackers, dash cams and smart watches.
-                </p>
-              </div>
-              <div className="store-header-actions">
-                <Link href="/store/cart" className="btn btn-primary store-cart-link">
-                  <span className="btn-icon">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path
-                        d="M6 6h14l-2 8H8L6 6Zm0 0-1-3H2m6 18a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm9 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    Cart ({cartCount})
-                  </span>
-                </Link>
-              </div>
-            </header>
 
-            <div className="store-layout">
-              <aside className="store-sidebar">
-                <div className="store-sidebar-card">
-                  <div className="store-filter-group">
-                    {CATEGORY_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        className={`btn btn-secondary store-filter-btn${
-                          category === option.value ? " is-active" : ""
-                        }`}
-                        onClick={() => setCategory(option.value)}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      className="btn btn-secondary store-filter-btn"
-                      onClick={resetFilters}
-                    >
-                      Clear
-                    </button>
-                  </div>
-
-                  <div className="store-sidebar-meta">
-                    {searchInput.trim().length > 0 && (
-                      <span className="store-results">
-                        {filteredProducts.length} results
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="store-search">
-                    <input
-                      className="form-input"
-                      placeholder="Search products"
-                    value={searchInput}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setSearchInput(value);
-                      applySearch(value.trim());
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        applySearch(searchInput.trim());
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => applySearch(searchInput.trim())}
-                  >
-                    Search
-                  </button>
-                  </div>
-
-                  <div className="store-selects">
-                    <select
-                      className="form-input"
-                      value={sort}
-                      onChange={(e) => setSort(e.target.value as (typeof SORT_OPTIONS)[number]["value"])}
-                    >
-                      {SORT_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      className="form-input"
-                      value={perPage}
-                      onChange={(e) => setPerPage(Number(e.target.value))}
-                    >
-                      <option value={6}>6 / page</option>
-                      <option value={9}>9 / page</option>
-                      <option value={12}>12 / page</option>
-                    </select>
-                  </div>
+            <div className="store-toolbar">
+              <div className="store-toolbar-row">
+                <div className="store-toolbar-title">
+                  <h2 className="store-title-heading">Products</h2>
+                  <p className="store-title-sub">
+                    Select from our most popular GPS trackers, dash cams and smart watches.
+                  </p>
                 </div>
-              </aside>
 
-              <div className="store-content">
-                {filteredProducts.length === 0 ? (
-                  <div className="store-empty">
-                    <h3>No products match your filters.</h3>
-                    <p>Try clearing filters or searching with a different keyword.</p>
+                <div className="store-toolbar-controls">
+                  <div className="store-search">
+                    <span className="store-search-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          d="M10.5 4a6.5 6.5 0 1 1 4.08 11.55l4.44 4.44-1.5 1.5-4.44-4.44A6.5 6.5 0 0 1 10.5 4Z"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      className="store-search-input"
+                      placeholder="Search products"
+                      value={searchInput}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setSearchInput(value);
+                        applySearch(value.trim());
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          applySearch(searchInput.trim());
+                        }
+                      }}
+                    />
                   </div>
-                ) : (
-                  <>
-                    <div className="store-grid">
-                      {pagedProducts.map((p) => {
-                        const inWishlist = wishlist.some((w) => w.slug === p.slug);
-                        const inCart = cart.some((item) => item.slug === p.slug);
-                        return (
-                          <article className="store-card" key={p._id}>
-                            {p.badge && <span className="store-badge-top">{p.badge}</span>}
 
-                            <div className="store-image-box">
-                              <Image
-                                src={p.image}
-                                alt={p.name}
-                                className="store-image"
-                                width={320}
-                                height={320}
-                                unoptimized
-                              />
-                            </div>
+                  <select
+                    className="store-select"
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value as (typeof SORT_OPTIONS)[number]["value"])}
+                  >
+                    {SORT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    className="store-select"
+                    value={perPage}
+                    onChange={(e) => setPerPage(Number(e.target.value))}
+                  >
+                    <option value={6}>6 / page</option>
+                    <option value={9}>9 / page</option>
+                    <option value={12}>12 / page</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="store-filter-group">
+                {CATEGORY_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`store-filter-chip${
+                      category === option.value ? " is-active" : ""
+                    }`}
+                    onClick={() => setCategory(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="store-content">
+              {filteredProducts.length === 0 ? (
+                <div className="store-empty">
+                  <h3>No products match your filters.</h3>
+                  <p>Try clearing filters or searching with a different keyword.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="store-grid">
+                    {pagedProducts.map((p) => {
+                      const inWishlist = wishlist.some((w) => w.slug === p.slug);
+                      const inCart = cart.some((item) => item.slug === p.slug);
+                      return (
+                        <article className="store-card" key={p._id}>
+                          {p.badge && <span className="store-badge-top">{p.badge}</span>}
+
+                          <div className="store-image-box">
+                            <Image
+                              src={p.image}
+                              alt={p.name}
+                              className="store-image"
+                              width={320}
+                              height={320}
+                              unoptimized
+                            />
+                          </div>
 
                             {p.category && <span className="store-category">{p.category}</span>}
                             <h3 className="store-title">{p.name}</h3>
@@ -355,7 +326,6 @@ export default function StoreClient({ products }: StoreClientProps) {
                 )}
               </div>
             </div>
-          </div>
         </section>
       </main>
     </>

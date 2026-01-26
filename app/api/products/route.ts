@@ -25,7 +25,6 @@ export async function POST(req: NextRequest) {
     // Required fields
     const requiredFields: Record<string, unknown> = {
       name,
-      slug,
       price,
       image,
     };
@@ -61,7 +60,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Normalize slug (IMPORTANT)
-    const cleanSlug = slugify(slug);
+    const cleanSlug = slugify(slug ?? name);
     if (!cleanSlug) {
       return NextResponse.json(
         { success: false, message: "slug is invalid" },

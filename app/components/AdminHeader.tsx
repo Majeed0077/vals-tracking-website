@@ -46,7 +46,10 @@ export default function AdminHeader() {
   // ------------ NAV ACTIVE HELPERS ------------
   const isActive = useCallback((href: string) => {
     if (href === "/admin/dashboard") {
-      return pathname?.startsWith("/admin");
+      return pathname === "/admin/dashboard";
+    }
+    if (href === "/admin/orders") {
+      return pathname === "/admin/orders";
     }
     return pathname === href;
   }, [pathname]);
@@ -113,6 +116,13 @@ export default function AdminHeader() {
           <a href="#product-form" className="nav-link" onClick={handleProductsClick}>
             Products
           </a>
+
+          <Link
+            href="/admin/orders"
+            className={`nav-link${isActive("/admin/orders") ? " active" : ""}`}
+          >
+            Orders
+          </Link>
 
           <Link href="/store" className="nav-link">
             View Store
