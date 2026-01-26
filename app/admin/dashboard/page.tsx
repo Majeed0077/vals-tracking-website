@@ -12,7 +12,6 @@ import {
   type FormEvent,
 } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 // You can keep this if you really want to force dynamic behavior for Netlify
@@ -32,6 +31,7 @@ type Product = {
 
 type FormState = {
   name: string;
+  slug: string;
   image: string; // existing image (for edit)
   category: string;
   price: string;
@@ -41,6 +41,7 @@ type FormState = {
 
 const INITIAL_FORM: FormState = {
   name: "",
+  slug: "",
   image: "",
   category: "",
   price: "",
@@ -75,7 +76,6 @@ function getErrorMessage(err: unknown, fallback: string): string {
 }
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -98,7 +98,7 @@ export default function AdminDashboardPage() {
       totalStock: products.reduce((sum, p) => sum + (p.stock ?? 0), 0),
     };
   }, [products]);
-
+  // placeholders for now – orders system baad me add karenge
   const totalOrders = 0;
   const totalRevenue = 0;
 
@@ -158,15 +158,9 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
-
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
-
-
-  useEffect(() => {
-    router.prefetch("/store");
-  }, [router]);
 
   const onChange = useCallback(
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -247,6 +241,7 @@ export default function AdminDashboardPage() {
 
         const payload = {
           name: form.name.trim(),
+          slug: form.slug.trim(),
           image: imageToUse,
           category: form.category.trim() || undefined,
           price: Number(form.price),
@@ -256,10 +251,11 @@ export default function AdminDashboardPage() {
 
         if (
           !payload.name ||
+          !payload.slug ||
           !payload.image ||
           Number.isNaN(payload.price)
         ) {
-          throw new Error("Name, image, and price are required.");
+          throw new Error("Name, slug, image, and price are required.");
         }
 
         if (payload.price < 0) {
@@ -310,6 +306,7 @@ export default function AdminDashboardPage() {
     setEditingId(product._id);
     setForm({
       name: product.name || "",
+      slug: product.slug || "",
       image: product.image || "", // keep existing base64/URL
       category: product.category || "",
       price: product.price != null ? String(product.price) : "",
@@ -374,7 +371,6 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
-
   return (
     <main className="section-block">
       <div className="container">
@@ -417,13 +413,13 @@ export default function AdminDashboardPage() {
           <div className="admin-stat-card">
             <p className="admin-stat-label">Total Orders</p>
             <p className="admin-stat-value">{totalOrders}</p>
-            <p className="admin-stat-sub">See Orders page</p>
+            <p className="admin-stat-sub">Orders tracking coming soon</p>
           </div>
 
           <div className="admin-stat-card">
             <p className="admin-stat-label">Total Revenue</p>
             <p className="admin-stat-value">Rs {totalRevenue.toLocaleString()}</p>
-            <p className="admin-stat-sub">View in Orders page</p>
+            <p className="admin-stat-sub">Connect checkout to enable</p>
           </div>
         </div>
 
@@ -465,6 +461,22 @@ export default function AdminDashboardPage() {
                 className="form-input"
                 value={form.name}
                 onChange={onChange}
+                required
+                disabled={saving}
+              />
+            </div>
+
+            <div className="form-field">
+              <label className="form-label" htmlFor="slug">
+                Slug
+              </label>
+              <input
+                id="slug"
+                name="slug"
+                className="form-input"
+                value={form.slug}
+                onChange={onChange}
+                placeholder="e.g. vals-basic-plan"
                 required
                 disabled={saving}
               />
@@ -634,7 +646,7 @@ const ProductTable = memo(function ProductTable({
           <table className="admin-table">
             <tbody>
               <tr>
-                <td colSpan={8} className="admin-table-empty">
+                <td colSpan={9} className="admin-table-empty">
                   No products found. Use <strong>"+ Add Product"</strong> to
                   create one.
                 </td>
@@ -647,6 +659,7 @@ const ProductTable = memo(function ProductTable({
               <tr>
                 <th>Image</th>
                 <th>Name</th>
+                <th>Slug</th>
                 <th>Category</th>
                 <th>Price (Rs)</th>
                 <th>Stock</th>
@@ -673,6 +686,7 @@ const ProductTable = memo(function ProductTable({
                     />
                   </td>
                   <td>{p.name}</td>
+                  <td>{p.slug}</td>
                   <td>{p.category}</td>
                   <td>
                     {Number(p.price).toLocaleString(undefined, {
@@ -709,4 +723,3 @@ const ProductTable = memo(function ProductTable({
     </section>
   );
 });
-
