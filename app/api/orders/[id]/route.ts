@@ -13,11 +13,12 @@ const ALLOWED_STATUSES: OrderStatus[] = [
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectDB();
-    const order = await Order.findById(params.id).lean();
+    const order = await Order.findById(id).lean();
     if (!order) {
       return NextResponse.json(
         { success: false, message: "Order not found" },
@@ -39,9 +40,10 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectDB();
     const body = await req.json();
     const nextStatus = body?.status;
@@ -54,7 +56,7 @@ export async function PUT(
     }
 
     const order = await Order.findByIdAndUpdate(
-      params.id,
+      id,
       { status: nextStatus },
       { new: true }
     ).lean();
@@ -81,11 +83,12 @@ export async function PUT(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectDB();
-    const order = await Order.findByIdAndDelete(params.id).lean();
+    const order = await Order.findByIdAndDelete(id).lean();
     if (!order) {
       return NextResponse.json(
         { success: false, message: "Order not found" },
