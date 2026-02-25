@@ -647,7 +647,7 @@ const ProductTable = memo(function ProductTable({
             <tbody>
               <tr>
                 <td colSpan={9} className="admin-table-empty">
-                  No products found. Use <strong>"+ Add Product"</strong> to
+                  No products found. Use <strong>&quot;+ Add Product&quot;</strong> to
                   create one.
                 </td>
               </tr>

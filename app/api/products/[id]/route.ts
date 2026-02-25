@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import mongoose from "mongoose";
+import { requireAdmin } from "@/lib/routeAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +80,9 @@ export async function GET(_req: NextRequest, context: RouteContext) {
 // PUT /api/products/[id] (expects real ObjectId)
 export async function PUT(req: NextRequest, context: RouteContext) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.ok) return auth.response;
+
     await connectDB();
 
     const { id } = await context.params;
@@ -149,6 +153,9 @@ export async function PUT(req: NextRequest, context: RouteContext) {
 // DELETE /api/products/[id] (expects real ObjectId)
 export async function DELETE(_req: NextRequest, context: RouteContext) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.ok) return auth.response;
+
     await connectDB();
 
     const { id } = await context.params;

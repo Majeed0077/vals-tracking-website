@@ -105,7 +105,6 @@ export default function StoreClient({ products }: StoreClientProps) {
     return filteredProducts.slice(start, start + perPage);
   }, [filteredProducts, page, perPage]);
 
-  const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
   const formatPrice = (value: number) =>
     Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 });
 
@@ -330,12 +329,4 @@ export default function StoreClient({ products }: StoreClientProps) {
       </main>
     </>
   );
-}
-
-function isCategory(value: string): value is "all" | "tracker" | "dashcam" | "watch" {
-  return ["all", "tracker", "dashcam", "watch"].includes(value);
-}
-
-function isSort(value: string): value is (typeof SORT_OPTIONS)[number]["value"] {
-  return ["newest", "price-asc", "price-desc", "name-asc", "name-desc"].includes(value);
 }

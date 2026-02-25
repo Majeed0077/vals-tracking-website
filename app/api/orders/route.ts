@@ -6,6 +6,7 @@ import Order, {
   type IOrderItem,
   type OrderStatus,
 } from "@/models/Order";
+import { requireAdmin } from "@/lib/routeAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,9 @@ const ALLOWED_STATUSES: OrderStatus[] = [
 
 export async function GET() {
   try {
+    const auth = await requireAdmin();
+    if (!auth.ok) return auth.response;
+
     await connectDB();
     const orders = await Order.find().sort({ createdAt: -1 }).lean();
     return NextResponse.json({ success: true, orders });

@@ -4,7 +4,7 @@ import { TOKEN_NAME } from "@/lib/auth";
 
 const ADMIN_PATH_PREFIX = "/admin";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Public routes (no auth needed)

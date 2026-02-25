@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+import { requireAdmin } from "@/lib/routeAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,9 @@ function slugify(value: unknown) {
 // POST /api/products – create new product
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.ok) return auth.response;
+
     await connectDB();
     const body = await req.json();
 
