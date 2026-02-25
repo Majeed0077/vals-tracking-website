@@ -29,6 +29,30 @@ type Product = {
   createdAt?: string | Date;
 };
 
+type OrderStatus = "pending" | "shipped" | "delivered" | "cancelled";
+
+type OrderItem = {
+  name: string;
+  price: number;
+  qty: number;
+};
+
+type OrderCustomer = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+};
+
+type Order = {
+  _id: string;
+  customer?: OrderCustomer;
+  items: OrderItem[];
+  total: number;
+  status: OrderStatus;
+  createdAt?: string | Date;
+};
+
 type FormState = {
   name: string;
   slug: string;
@@ -48,6 +72,8 @@ const INITIAL_FORM: FormState = {
   stock: "",
   badge: "",
 };
+
+const DEFAULT_PROFIT_MARGIN = 32;
 
 // helper: file -> base64 (data URL)
 function fileToBase64(file: File): Promise<string> {
@@ -77,9 +103,11 @@ function getErrorMessage(err: unknown, fallback: string): string {
 
 export default function AdminDashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
 
@@ -92,15 +120,109 @@ export default function AdminDashboardPage() {
   const objectUrlRef = useRef<string | null>(null);
 
   // Derived stats
-  const { totalProducts, totalStock } = useMemo(() => {
+  const { totalProducts, totalStock, stockValue } = useMemo(() => {
     return {
       totalProducts: products.length,
       totalStock: products.reduce((sum, p) => sum + (p.stock ?? 0), 0),
+      stockValue: products.reduce(
+        (sum, p) => sum + (p.stock ?? 0) * Number(p.price || 0),
+        0
+      ),
     };
   }, [products]);
   // placeholders for now – orders system baad me add karenge
-  const totalOrders = 0;
-  const totalRevenue = 0;
+
+  const analytics = useMemo(() => {
+    const nonCancelled = orders.filter((order) => order.status !== "cancelled");
+    const deliveredOrders = orders.filter((order) => order.status === "delivered");
+    const cancelledOrders = orders.filter((order) => order.status === "cancelled");
+
+    const totalOrders = orders.length;
+    const activeOrders = nonCancelled.length;
+    const deliveredCount = deliveredOrders.length;
+    const cancelledCount = cancelledOrders.length;
+
+    const grossRevenue = nonCancelled.reduce((sum, order) => sum + Number(order.total || 0), 0);
+    const deliveredRevenue = deliveredOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+    const cancelledValue = cancelledOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+    const averageOrderValue = activeOrders > 0 ? grossRevenue / activeOrders : 0;
+
+    const marginFactor = DEFAULT_PROFIT_MARGIN / 100;
+    const estimatedProfit = deliveredRevenue * marginFactor;
+    const estimatedCogs = deliveredRevenue - estimatedProfit;
+    const estimatedLoss = cancelledValue * marginFactor;
+    const netOutcome = estimatedProfit - estimatedLoss;
+
+    const statusCounts: Record<OrderStatus, number> = {
+      pending: 0,
+      shipped: 0,
+      delivered: 0,
+      cancelled: 0,
+    };
+
+    const now = new Date();
+    const monthlyMap = new Map<
+      string,
+      { label: string; revenue: number; orders: number; delivered: number }
+    >();
+    for (let i = 5; i >= 0; i -= 1) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      monthlyMap.set(key, {
+        label: d.toLocaleDateString(undefined, { month: "short" }),
+        revenue: 0,
+        delivered: 0,
+        orders: 0,
+      });
+    }
+
+    for (const order of orders) {
+      statusCounts[order.status] += 1;
+      const created = order.createdAt ? new Date(order.createdAt) : null;
+      if (!created || Number.isNaN(created.getTime())) continue;
+
+      const monthKey = `${created.getFullYear()}-${created.getMonth()}`;
+      const bucket = monthlyMap.get(monthKey);
+      if (!bucket) continue;
+
+      bucket.orders += 1;
+      if (order.status !== "cancelled") {
+        bucket.revenue += Number(order.total || 0);
+      }
+      if (order.status === "delivered") {
+        bucket.delivered += Number(order.total || 0);
+      }
+    }
+
+    const monthlySeries = Array.from(monthlyMap.values());
+    const maxRevenue = monthlySeries.reduce(
+      (max, point) => Math.max(max, point.revenue),
+      0
+    );
+    const maxOrders = monthlySeries.reduce(
+      (max, point) => Math.max(max, point.orders),
+      0
+    );
+
+    return {
+      totalOrders,
+      activeOrders,
+      deliveredCount,
+      cancelledCount,
+      grossRevenue,
+      deliveredRevenue,
+      cancelledValue,
+      averageOrderValue,
+      estimatedProfit,
+      estimatedCogs,
+      estimatedLoss,
+      netOutcome,
+      statusCounts,
+      monthlySeries,
+      maxRevenue,
+      maxOrders,
+    };
+  }, [orders]);
 
   const isCreateMode = !editingId;
 
@@ -158,9 +280,53 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
+  const loadOrders = useCallback(async () => {
+    try {
+      setOrdersError(null);
+
+      const res = await fetch("/api/orders", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const data: unknown = await res.json();
+
+      const ok =
+        typeof data === "object" &&
+        data !== null &&
+        "success" in data &&
+        (data as { success: unknown }).success === true;
+
+      if (!res.ok || !ok) {
+        const message =
+          typeof data === "object" &&
+          data !== null &&
+          "message" in data &&
+          typeof (data as { message?: unknown }).message === "string"
+            ? (data as { message: string }).message
+            : "Failed to load orders";
+        throw new Error(message);
+      }
+
+      const ordersFromApi =
+        typeof data === "object" &&
+        data !== null &&
+        "orders" in data &&
+        Array.isArray((data as { orders?: unknown }).orders)
+          ? ((data as { orders: Order[] }).orders ?? [])
+          : [];
+
+      setOrders(ordersFromApi);
+    } catch (err: unknown) {
+      console.error(err);
+      setOrdersError(getErrorMessage(err, "Unexpected error while loading orders"));
+    }
+  }, []);
+
   useEffect(() => {
     loadProducts();
-  }, [loadProducts]);
+    loadOrders();
+  }, [loadProducts, loadOrders]);
 
   const onChange = useCallback(
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -389,6 +555,9 @@ export default function AdminDashboardPage() {
             <Link href="/store" className="btn btn-secondary">
               View Store
             </Link>
+            <Link href="/admin/analytics" className="btn btn-secondary">
+              Analytics
+            </Link>
             <Link
               href="#product-form"
               className="btn btn-primary"
@@ -399,32 +568,65 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Stats cards */}
-        <div className="admin-stats-grid">
+        <div className="admin-stats-grid admin-stats-grid--analytics">
           <div className="admin-stat-card">
             <p className="admin-stat-label">Total Products</p>
             <p className="admin-stat-value">{totalProducts}</p>
+            <p className="admin-stat-sub">Stock units: {totalStock.toLocaleString()}</p>
           </div>
 
           <div className="admin-stat-card">
-            <p className="admin-stat-label">Total Stock</p>
-            <p className="admin-stat-value">{totalStock}</p>
+            <p className="admin-stat-label">Inventory Value</p>
+            <p className="admin-stat-value">Rs {stockValue.toLocaleString()}</p>
+            <p className="admin-stat-sub">Current shelf value estimate</p>
           </div>
 
           <div className="admin-stat-card">
-            <p className="admin-stat-label">Total Orders</p>
-            <p className="admin-stat-value">{totalOrders}</p>
-            <p className="admin-stat-sub">Orders tracking coming soon</p>
+            <p className="admin-stat-label">Gross Revenue</p>
+            <p className="admin-stat-value">Rs {Math.round(analytics.grossRevenue).toLocaleString()}</p>
+            <p className="admin-stat-sub">
+              Delivered: Rs {Math.round(analytics.deliveredRevenue).toLocaleString()}
+            </p>
           </div>
 
           <div className="admin-stat-card">
-            <p className="admin-stat-label">Total Revenue</p>
-            <p className="admin-stat-value">Rs {totalRevenue.toLocaleString()}</p>
-            <p className="admin-stat-sub">Connect checkout to enable</p>
+            <p className="admin-stat-label">Estimated Profit</p>
+            <p className="admin-stat-value admin-profit">
+              Rs {Math.round(analytics.estimatedProfit).toLocaleString()}
+            </p>
+            <p className="admin-stat-sub">
+              COGS: Rs {Math.round(analytics.estimatedCogs).toLocaleString()}
+            </p>
+          </div>
+
+          <div className="admin-stat-card">
+            <p className="admin-stat-label">Estimated Loss</p>
+            <p className="admin-stat-value admin-loss">
+              Rs {Math.round(analytics.estimatedLoss).toLocaleString()}
+            </p>
+            <p className="admin-stat-sub">
+              Cancelled value: Rs {Math.round(analytics.cancelledValue).toLocaleString()}
+            </p>
+          </div>
+
+          <div className="admin-stat-card">
+            <p className="admin-stat-label">Net Outcome</p>
+            <p
+              className={`admin-stat-value ${
+                analytics.netOutcome >= 0 ? "admin-profit" : "admin-loss"
+              }`}
+            >
+              Rs {Math.round(analytics.netOutcome).toLocaleString()}
+            </p>
+            <p className="admin-stat-sub">
+              AOV: Rs {Math.round(analytics.averageOrderValue).toLocaleString()}
+            </p>
           </div>
         </div>
 
-        {/* Error banner */}
-        {error && <div className="admin-error-banner">{error}</div>}
+        {(error || ordersError) && (
+          <div className="admin-error-banner">{error || ordersError}</div>
+        )}
 
         {/* Product form (Create / Edit) */}
         <section id="product-form" className="admin-form-card">
@@ -637,7 +839,7 @@ const ProductTable = memo(function ProductTable({
         </span>
       </div>
 
-      <div className="admin-table-wrapper">
+      <div className="admin-table-wrapper admin-table-scroll-5">
         {loading && products.length === 0 ? (
           <div className="admin-table-empty">
             Loading products...

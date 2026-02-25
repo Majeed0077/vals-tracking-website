@@ -47,21 +47,17 @@ export default function AdminHeader() {
     if (href === "/admin/dashboard") {
       return pathname === "/admin/dashboard";
     }
+    if (href === "/admin/products") {
+      return pathname === "/admin/products";
+    }
     if (href === "/admin/orders") {
       return pathname === "/admin/orders";
     }
+    if (href === "/admin/analytics") {
+      return pathname === "/admin/analytics";
+    }
     return pathname === href;
   }, [pathname]);
-
-  const handleProductsClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const section = document.getElementById("product-form");
-    if (section) {
-      section.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      router.push("/admin/dashboard#product-form");
-    }
-  }, [router]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -112,15 +108,25 @@ export default function AdminHeader() {
             Overview
           </Link>
 
-          <a href="#product-form" className="nav-link" onClick={handleProductsClick}>
+          <Link
+            href="/admin/products"
+            className={`nav-link${isActive("/admin/products") ? " active" : ""}`}
+          >
             Products
-          </a>
+          </Link>
 
           <Link
             href="/admin/orders"
             className={`nav-link${isActive("/admin/orders") ? " active" : ""}`}
           >
             Orders
+          </Link>
+
+          <Link
+            href="/admin/analytics"
+            className={`nav-link${isActive("/admin/analytics") ? " active" : ""}`}
+          >
+            Analytics
           </Link>
 
           <Link href="/store" className="nav-link">
