@@ -1,5 +1,4 @@
 // app/page.tsx
-import Image from "next/image";
 import Link from "next/link";
 export default function HomePage() {
   return (
@@ -56,17 +55,61 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* RIGHT MEDIA – dashboard only */}
+          {/* RIGHT MEDIA */}
           <div className="hero-media">
-            <div className="hero-dashboard-card">
-              <Image
-                src="/images/dashboard.png"
-                alt="Tracking dashboard"
-                width={700}       // apni image ka width daal do
-                height={420}      // apni image ka height daal do
-                className="hero-dashboard"
-              />
+            <div className="hero-dashboard-card hero-ops-card" aria-label="Live fleet operations preview">
+              <div className="ops-header">
+                <span className="ops-dot-icon" aria-hidden="true"></span>
+                <div className="ops-title-wrap">
+                  <span className="ops-title">Live Fleet Operations</span>
+                  <span className="ops-subtitle">Karachi command center</span>
+                </div>
+                <span className="ops-badge">Realtime</span>
+              </div>
 
+              <div className="ops-body">
+                <div className="ops-map" aria-hidden="true">
+                  <svg viewBox="0 0 420 210" className="ops-route">
+                    <path d="M20 180 C90 140, 115 155, 172 108 S282 40, 400 70" />
+                    <path d="M20 122 C120 88, 170 146, 242 138 S350 120, 400 170" />
+                  </svg>
+                  <span className="ops-node node-lahore">Lahore</span>
+                  <span className="ops-node node-isl">Islamabad</span>
+                  <span className="ops-node node-khi">Karachi</span>
+                  <span className="ops-ping ping-1"></span>
+                  <span className="ops-ping ping-2"></span>
+                  <span className="ops-ping ping-3"></span>
+                </div>
+
+                <div className="ops-side">
+                  <div className="ops-kpis">
+                    <div className="ops-kpi">
+                      <span>Total</span>
+                      <strong>128</strong>
+                    </div>
+                    <div className="ops-kpi ops-kpi--active">
+                      <span>Active</span>
+                      <strong>84</strong>
+                    </div>
+                    <div className="ops-kpi ops-kpi--alert">
+                      <span>Alerts</span>
+                      <strong>6</strong>
+                    </div>
+                  </div>
+
+                  <ul className="ops-alerts">
+                    <li className="ops-alert-item ops-alert-item--warn">Truck #21 delayed near M5</li>
+                    <li className="ops-alert-item">Van #08 resumed route to KHI</li>
+                    <li className="ops-alert-item">Cold chain healthy on 14 units</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="ops-footer">
+                <span>Logistics</span>
+                <span>Fuel Monitoring</span>
+                <span>Driver Safety</span>
+              </div>
             </div>
           </div>
         </div>
