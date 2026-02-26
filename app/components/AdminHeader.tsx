@@ -198,7 +198,7 @@ export default function AdminHeader() {
           type="button"
           onClick={handleLogout}
           disabled={loggingOut}
-          className="nav-auth-btn login-btn admin-side-logout"
+          className="btn btn-secondary admin-side-logout"
           title={collapsed ? "Logout" : undefined}
         >
           <span className="admin-side-link-icon"><SidebarIcon icon="logout" /></span>

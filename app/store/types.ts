@@ -6,6 +6,12 @@ export type StoreProduct = {
   slug: string;
   image: string;
   price: number;
+  discount?: {
+    type: "percentage" | "fixed";
+    value: number;
+    startAt?: string | Date;
+    endAt?: string | Date;
+  };
   badge?: string;
   category?: string;
 };

@@ -47,6 +47,55 @@ function normalizeVariants(variants: unknown) {
     );
 }
 
+type DiscountShape = {
+  type: "percentage" | "fixed";
+  value: number;
+  startAt?: Date;
+  endAt?: Date;
+};
+
+function normalizeDiscount(payload: Record<string, unknown>) {
+  const discountType = String(payload.discountType ?? "").trim().toLowerCase();
+  const discountValue = Number(payload.discountValue ?? 0);
+  const discountStartAtRaw = String(payload.discountStartAt ?? "").trim();
+  const discountEndAtRaw = String(payload.discountEndAt ?? "").trim();
+
+  if (!discountType || discountType === "none" || !Number.isFinite(discountValue) || discountValue <= 0) {
+    return { discount: undefined as DiscountShape | undefined, error: null as string | null };
+  }
+
+  if (discountType !== "percentage" && discountType !== "fixed") {
+    return { discount: undefined, error: "discountType must be percentage or fixed" };
+  }
+
+  if (discountType === "percentage" && discountValue > 100) {
+    return { discount: undefined, error: "discountValue cannot exceed 100 for percentage discount" };
+  }
+
+  const startAt = discountStartAtRaw ? new Date(discountStartAtRaw) : undefined;
+  const endAt = discountEndAtRaw ? new Date(discountEndAtRaw) : undefined;
+
+  if (startAt && Number.isNaN(startAt.getTime())) {
+    return { discount: undefined, error: "discountStartAt is invalid" };
+  }
+  if (endAt && Number.isNaN(endAt.getTime())) {
+    return { discount: undefined, error: "discountEndAt is invalid" };
+  }
+  if (startAt && endAt && startAt > endAt) {
+    return { discount: undefined, error: "discountEndAt must be after discountStartAt" };
+  }
+
+  return {
+    discount: {
+      type: discountType,
+      value: Math.max(0, discountValue),
+      startAt,
+      endAt,
+    } as DiscountShape,
+    error: null as string | null,
+  };
+}
+
 // POST /api/products - create new product
 export async function POST(req: NextRequest) {
   try {
@@ -80,6 +129,13 @@ export async function POST(req: NextRequest) {
       badge,
       description,
     } = body;
+    const discountNormalized = normalizeDiscount(body as Record<string, unknown>);
+    if (discountNormalized.error) {
+      return NextResponse.json(
+        { success: false, message: discountNormalized.error },
+        { status: 400 }
+      );
+    }
 
     const requiredFields: Record<string, unknown> = { name, price, image };
 
@@ -161,6 +217,7 @@ export async function POST(req: NextRequest) {
       variants: normalizeVariants(variants),
       badge,
       description: description ?? "",
+      discount: discountNormalized.discount,
     });
 
     if (numericStock > 0) {

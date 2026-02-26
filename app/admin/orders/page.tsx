@@ -24,6 +24,9 @@ type Order = {
   items: OrderItem[];
   total: number;
   status: OrderStatus;
+  paymentStatus?: "unpaid" | "paid" | "partially_refunded" | "refunded";
+  paymentMethod?: string;
+  paymentReference?: string;
   createdAt?: string | Date;
 };
 
@@ -93,6 +96,7 @@ export default function AdminOrdersPage() {
   const [mockOrders, setMockOrders] = useState<Order[]>(MOCK_ORDERS);
   const [loading, setLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadOrders = useCallback(async () => {
@@ -199,6 +203,57 @@ export default function AdminOrdersPage() {
     }
   }, [usingMockOrders]);
 
+  const verifyPayment = useCallback(async (id: string) => {
+    try {
+      if (usingMockOrders) {
+        setMockOrders((prev) =>
+          prev.map((order) =>
+            order._id === id ? { ...order, paymentStatus: "paid" } : order
+          )
+        );
+        return;
+      }
+
+      setVerifyingId(id);
+      setError(null);
+
+      const res = await fetch(`/api/orders/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentStatus: "paid" }),
+      });
+
+      const data: unknown = await res.json();
+      const ok =
+        typeof data === "object" &&
+        data !== null &&
+        "success" in data &&
+        (data as { success: unknown }).success === true;
+
+      if (!res.ok || !ok) {
+        const message =
+          typeof data === "object" &&
+          data !== null &&
+          "message" in data &&
+          typeof (data as { message?: unknown }).message === "string"
+            ? (data as { message: string }).message
+            : "Failed to verify payment";
+        throw new Error(message);
+      }
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order._id === id ? { ...order, paymentStatus: "paid" } : order
+        )
+      );
+    } catch (err: unknown) {
+      console.error(err);
+      setError(getErrorMessage(err, "Unexpected error while verifying payment"));
+    } finally {
+      setVerifyingId(null);
+    }
+  }, [usingMockOrders]);
+
   return (
     <main className="section-block">
       <div className="container">
@@ -215,7 +270,9 @@ export default function AdminOrdersPage() {
           orders={displayOrders}
           loading={loading}
           updatingId={updatingId}
+          verifyingId={verifyingId}
           onStatusChange={updateOrderStatus}
+          onVerifyPayment={verifyPayment}
           isMock={usingMockOrders}
         />
       </div>
@@ -227,13 +284,17 @@ const OrdersTable = memo(function OrdersTable({
   orders,
   loading,
   updatingId,
+  verifyingId,
   onStatusChange,
+  onVerifyPayment,
   isMock,
 }: {
   orders: Order[];
   loading: boolean;
   updatingId: string | null;
+  verifyingId: string | null;
   onStatusChange: (id: string, status: OrderStatus) => void;
+  onVerifyPayment: (id: string) => void;
   isMock: boolean;
 }) {
   return (
@@ -254,7 +315,7 @@ const OrdersTable = memo(function OrdersTable({
           <table className="admin-table">
             <tbody>
               <tr>
-                <td colSpan={7} className="admin-table-empty">
+                <td colSpan={8} className="admin-table-empty">
                   No orders yet.
                 </td>
               </tr>
@@ -269,6 +330,7 @@ const OrdersTable = memo(function OrdersTable({
                 <th>Items</th>
                 <th>Total (Rs)</th>
                 <th>Status</th>
+                <th>Payment</th>
                 <th>Created</th>
                 <th style={{ textAlign: "right" }}>Actions</th>
               </tr>
@@ -296,27 +358,51 @@ const OrdersTable = memo(function OrdersTable({
                       </span>
                     </td>
                     <td>
+                      <div style={{ display: "grid", gap: 2 }}>
+                        <strong style={{ fontSize: 12 }}>
+                          {order.paymentMethod || "COD"}
+                        </strong>
+                        <span style={{ fontSize: 12, opacity: 0.75 }}>
+                          {order.paymentReference || "-"}
+                        </span>
+                      </div>
+                    </td>
+                    <td>
                       {order.createdAt
                         ? new Date(order.createdAt).toLocaleDateString()
                         : "-"}
                     </td>
                     <td className="admin-table-actions">
-                      <select
-                        className="order-status-select"
-                        value={order.status}
-                        disabled={updatingId === order._id}
-                        onChange={(e) =>
-                          onStatusChange(
-                            order._id,
-                            e.target.value as OrderStatus
-                          )
-                        }
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
+                        <select
+                          className="order-status-select"
+                          value={order.status}
+                          disabled={updatingId === order._id}
+                          onChange={(e) =>
+                            onStatusChange(
+                              order._id,
+                              e.target.value as OrderStatus
+                            )
+                          }
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="shipped">Shipped</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                        {order.paymentStatus !== "paid" ? (
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            disabled={verifyingId === order._id}
+                            onClick={() => onVerifyPayment(order._id)}
+                          >
+                            {verifyingId === order._id ? "Verifying..." : "Verify Payment"}
+                          </button>
+                        ) : (
+                          <span className="order-status-pill is-delivered">Paid</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

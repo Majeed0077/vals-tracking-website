@@ -57,6 +57,54 @@ function normalizeVariants(variants: unknown) {
     );
 }
 
+type DiscountShape = {
+  type: "percentage" | "fixed";
+  value: number;
+  startAt?: Date;
+  endAt?: Date;
+};
+
+function normalizeDiscount(payload: Record<string, unknown>) {
+  const discountType = String(payload.discountType ?? "").trim().toLowerCase();
+  const discountValue = Number(payload.discountValue ?? 0);
+  const discountStartAtRaw = String(payload.discountStartAt ?? "").trim();
+  const discountEndAtRaw = String(payload.discountEndAt ?? "").trim();
+
+  if (!discountType || discountType === "none" || !Number.isFinite(discountValue) || discountValue <= 0) {
+    return { discount: undefined as DiscountShape | undefined, error: null as string | null };
+  }
+
+  if (discountType !== "percentage" && discountType !== "fixed") {
+    return { discount: undefined, error: "discountType must be percentage or fixed" };
+  }
+  if (discountType === "percentage" && discountValue > 100) {
+    return { discount: undefined, error: "discountValue cannot exceed 100 for percentage discount" };
+  }
+
+  const startAt = discountStartAtRaw ? new Date(discountStartAtRaw) : undefined;
+  const endAt = discountEndAtRaw ? new Date(discountEndAtRaw) : undefined;
+
+  if (startAt && Number.isNaN(startAt.getTime())) {
+    return { discount: undefined, error: "discountStartAt is invalid" };
+  }
+  if (endAt && Number.isNaN(endAt.getTime())) {
+    return { discount: undefined, error: "discountEndAt is invalid" };
+  }
+  if (startAt && endAt && startAt > endAt) {
+    return { discount: undefined, error: "discountEndAt must be after discountStartAt" };
+  }
+
+  return {
+    discount: {
+      type: discountType,
+      value: Math.max(0, discountValue),
+      startAt,
+      endAt,
+    } as DiscountShape,
+    error: null as string | null,
+  };
+}
+
 export async function GET(_req: NextRequest, context: RouteContext) {
   try {
     await connectDB();
@@ -144,6 +192,13 @@ export async function PUT(req: NextRequest, context: RouteContext) {
       badge,
       description,
     } = body;
+    const discountNormalized = normalizeDiscount(body as Record<string, unknown>);
+    if (discountNormalized.error) {
+      return NextResponse.json(
+        { success: false, message: discountNormalized.error },
+        { status: 400 }
+      );
+    }
 
     const product = await Product.findById(id);
     if (!product) {
@@ -224,6 +279,14 @@ export async function PUT(req: NextRequest, context: RouteContext) {
 
     if (badge !== undefined) product.badge = badge;
     if (description !== undefined) product.description = description;
+    if (
+      "discountType" in (body as Record<string, unknown>) ||
+      "discountValue" in (body as Record<string, unknown>) ||
+      "discountStartAt" in (body as Record<string, unknown>) ||
+      "discountEndAt" in (body as Record<string, unknown>)
+    ) {
+      product.discount = discountNormalized.discount;
+    }
 
     await product.save();
 

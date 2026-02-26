@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useShopStore } from "@/app/state/useShopStore";
 import type { StoreProduct } from "@/app/store/types";
+import { resolveProductPricing } from "@/lib/productPricing";
 
 type StoreClientProps = {
   products: StoreProduct[];
@@ -17,6 +18,12 @@ type ApiProduct = {
   slug?: string;
   image?: string;
   price?: number;
+  discount?: {
+    type?: "percentage" | "fixed";
+    value?: number;
+    startAt?: string | Date;
+    endAt?: string | Date;
+  };
   badge?: string;
   category?: string;
 };
@@ -40,15 +47,11 @@ function getProductMeta(product: StoreProduct) {
   const seed = product.slug
     .split("")
     .reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
-  const discount = 12 + (seed % 38); // 12% - 49%
   const rating = 3.8 + ((seed % 12) / 10); // 3.8 - 4.9
   const ratingCount = 10 + (seed % 320);
-  const oldPrice = Math.round(product.price / (1 - discount / 100));
   return {
-    discount,
     rating: Math.min(5, Number(rating.toFixed(1))),
     ratingCount,
-    oldPrice,
   };
 }
 
@@ -77,6 +80,18 @@ function normalizeApiProduct(value: unknown): StoreProduct | null {
     slug,
     image,
     price,
+    discount:
+      obj.discount &&
+      typeof obj.discount === "object" &&
+      (((obj.discount as { type?: unknown }).type === "percentage") ||
+        ((obj.discount as { type?: unknown }).type === "fixed"))
+        ? {
+            type: (obj.discount as { type: "percentage" | "fixed" }).type,
+            value: Number((obj.discount as { value?: unknown }).value ?? 0),
+            startAt: (obj.discount as { startAt?: string | Date }).startAt,
+            endAt: (obj.discount as { endAt?: string | Date }).endAt,
+          }
+        : undefined,
     badge: typeof obj.badge === "string" ? obj.badge : undefined,
     category: typeof obj.category === "string" ? obj.category : undefined,
   };
@@ -192,10 +207,18 @@ export default function StoreClient({ products }: StoreClientProps) {
     const sorted = [...list];
     switch (sort) {
       case "price-asc":
-        sorted.sort((a, b) => a.price - b.price);
+        sorted.sort(
+          (a, b) =>
+            resolveProductPricing({ price: a.price, discount: a.discount }).finalPrice -
+            resolveProductPricing({ price: b.price, discount: b.discount }).finalPrice
+        );
         break;
       case "price-desc":
-        sorted.sort((a, b) => b.price - a.price);
+        sorted.sort(
+          (a, b) =>
+            resolveProductPricing({ price: b.price, discount: b.discount }).finalPrice -
+            resolveProductPricing({ price: a.price, discount: a.discount }).finalPrice
+        );
         break;
       case "name-asc":
         sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -377,7 +400,10 @@ export default function StoreClient({ products }: StoreClientProps) {
                                     id: p.slug,
                                     slug: p.slug,
                                     name: p.name,
-                                    price: p.price,
+                                    price: resolveProductPricing({
+                                      price: p.price,
+                                      discount: p.discount,
+                                    }).finalPrice,
                                     image: p.image,
                                   })
                             }
@@ -403,7 +429,10 @@ export default function StoreClient({ products }: StoreClientProps) {
                               toggleWishlist({
                                 slug: p.slug,
                                 name: p.name,
-                                price: p.price,
+                                price: resolveProductPricing({
+                                  price: p.price,
+                                  discount: p.discount,
+                                }).finalPrice,
                                 image: p.image,
                               })
                             }
@@ -471,13 +500,21 @@ function StorePriceAndRating({
   formatPrice: (value: number) => string;
 }) {
   const meta = getProductMeta(product);
+  const pricing = resolveProductPricing({
+    price: product.price,
+    discount: product.discount,
+  });
 
   return (
     <div className="store-market-meta">
       <p className="store-price">
-        Rs {formatPrice(product.price)}
-        <span className="store-old-price">Rs {formatPrice(meta.oldPrice)}</span>
-        <span className="store-discount">-{meta.discount}%</span>
+        Rs {formatPrice(pricing.finalPrice)}
+        {pricing.hasDiscount && (
+          <>
+            <span className="store-old-price">Rs {formatPrice(pricing.basePrice)}</span>
+            <span className="store-discount">-{pricing.discountPercent}%</span>
+          </>
+        )}
       </p>
       <p className="store-rating-line">
         <span className="store-rating-stars">{"★".repeat(5)}</span>

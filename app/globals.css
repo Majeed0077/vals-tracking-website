@@ -5610,6 +5610,38 @@ html[data-theme="light"] .auth-alt-btn {
   box-shadow: 0 18px 45px rgba(2, 6, 23, 0.7);
 }
 
+.admin-products-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.admin-products-form-panel {
+  margin-bottom: 0;
+}
+
+.admin-products-table-panel {
+  min-width: 0;
+}
+
+@media (min-width: 1200px) {
+  .admin-products-layout {
+    grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.45fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .admin-products-form-panel {
+    position: sticky;
+    top: 88px;
+  }
+
+  .admin-products-form-panel .admin-form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
 .btn-secondary {
   background: transparent;
   border-color: rgba(148, 163, 184, 0.5);

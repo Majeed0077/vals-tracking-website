@@ -18,6 +18,12 @@ export interface IProduct extends mongoose.Document {
   }>;
   badge?: string;
   description?: string;
+  discount?: {
+    type: "percentage" | "fixed";
+    value: number;
+    startAt?: Date;
+    endAt?: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -86,6 +92,22 @@ const ProductSchema = new Schema<IProduct>(
     description: {
       type: String,
       default: "",
+    },
+    discount: {
+      type: {
+        type: String,
+        enum: ["percentage", "fixed"],
+      },
+      value: {
+        type: Number,
+        min: 0,
+      },
+      startAt: {
+        type: Date,
+      },
+      endAt: {
+        type: Date,
+      },
     },
   },
   {

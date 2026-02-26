@@ -8,6 +8,8 @@ import { useSearchParams } from "next/navigation";
 import { useShopStore } from "@/app/state/useShopStore";
 
 export default function CartPage() {
+  type CheckoutPaymentMethod = "cod" | "easypaisa" | "jazzcash";
+
   const searchParams = useSearchParams();
   const cart = useShopStore((state) => state.cart);
   const updateQty = useShopStore((state) => state.updateQty);
@@ -23,6 +25,9 @@ export default function CartPage() {
     phone: "",
     address: "",
     note: "",
+    paymentMethod: "cod" as CheckoutPaymentMethod,
+    payerPhone: "",
+    paymentReference: "",
   });
 
   useEffect(() => {
@@ -51,6 +56,15 @@ export default function CartPage() {
       setCheckoutError("Your cart is empty.");
       return;
     }
+    if (
+      form.paymentMethod !== "cod" &&
+      (!form.payerPhone.trim() || !form.paymentReference.trim())
+    ) {
+      setCheckoutError(
+        "For Easypaisa/JazzCash, sender phone and transaction reference are required."
+      );
+      return;
+    }
 
     try {
       setPlacingOrder(true);
@@ -76,6 +90,11 @@ export default function CartPage() {
           items,
           status: "pending",
           paymentStatus: "unpaid",
+          paymentMethod: form.paymentMethod.toUpperCase(),
+          paymentReference:
+            form.paymentMethod === "cod"
+              ? undefined
+              : `${form.paymentReference.trim()} | Sender: ${form.payerPhone.trim()}`,
           shippingCost: 0,
           note: form.note.trim() || undefined,
         }),
@@ -109,7 +128,16 @@ export default function CartPage() {
 
       clearCart();
       setCheckoutOpen(false);
-      setForm({ name: "", email: "", phone: "", address: "", note: "" });
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
+        note: "",
+        paymentMethod: "cod",
+        payerPhone: "",
+        paymentReference: "",
+      });
       setOrderSuccess(`Order placed successfully. Order ID: ${orderId}`);
     } catch (error) {
       setCheckoutError(error instanceof Error ? error.message : "Failed to place order.");
@@ -290,7 +318,58 @@ export default function CartPage() {
                       <label className="form-label">Address</label>
                       <input className="form-input" value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} required />
                     </div>
+                    <div className="form-field">
+                      <label className="form-label">Payment Method</label>
+                      <select
+                        className="form-input"
+                        value={form.paymentMethod}
+                        onChange={(e) =>
+                          setForm((p) => ({
+                            ...p,
+                            paymentMethod: e.target.value as CheckoutPaymentMethod,
+                          }))
+                        }
+                      >
+                        <option value="cod">Cash on Delivery (COD)</option>
+                        <option value="easypaisa">Easypaisa (Manual Confirmation)</option>
+                        <option value="jazzcash">JazzCash (Manual Confirmation)</option>
+                      </select>
+                    </div>
                   </div>
+                  <div style={{ marginTop: 8, fontSize: 13, opacity: 0.82 }}>
+                    {form.paymentMethod === "cod"
+                      ? "COD selected: payment will be collected at delivery."
+                      : "Manual payment selected: enter sender phone and transaction/reference ID. Admin will verify payment manually."}
+                  </div>
+                  {form.paymentMethod !== "cod" && (
+                    <div className="admin-form-grid" style={{ marginTop: 8 }}>
+                      <div className="form-field">
+                        <label className="form-label">Sender Phone (Payment Account)</label>
+                        <input
+                          className="form-input"
+                          value={form.payerPhone}
+                          onChange={(e) =>
+                            setForm((p) => ({ ...p, payerPhone: e.target.value }))
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label className="form-label">Transaction Reference / Trx ID</label>
+                        <input
+                          className="form-input"
+                          value={form.paymentReference}
+                          onChange={(e) =>
+                            setForm((p) => ({
+                              ...p,
+                              paymentReference: e.target.value,
+                            }))
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
                   <div className="form-field" style={{ marginTop: 8 }}>
                     <label className="form-label">Note (optional)</label>
                     <textarea className="form-input" value={form.note} onChange={(e) => setForm((p) => ({ ...p, note: e.target.value }))} />

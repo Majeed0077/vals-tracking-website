@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import BuyNowActions from "@/app/components/BuyNowActions";
 import ProductDetailRows from "@/app/store/components/ProductDetailRows";
+import { resolveProductPricing } from "@/lib/productPricing";
 
 type ProductShape = {
   id: string;
@@ -12,6 +13,12 @@ type ProductShape = {
   slug: string;
   image: string;
   price: number;
+  discount?: {
+    type: "percentage" | "fixed";
+    value: number;
+    startAt?: string | Date;
+    endAt?: string | Date;
+  };
   badge?: string;
   category?: string;
   stock?: number;
@@ -46,6 +53,18 @@ function normalizeProduct(value: unknown): ProductShape | null {
     slug: itemSlug,
     image,
     price,
+    discount:
+      raw.discount &&
+      typeof raw.discount === "object" &&
+      (((raw.discount as { type?: unknown }).type === "percentage") ||
+        ((raw.discount as { type?: unknown }).type === "fixed"))
+        ? {
+            type: (raw.discount as { type: "percentage" | "fixed" }).type,
+            value: Number((raw.discount as { value?: unknown }).value ?? 0),
+            startAt: (raw.discount as { startAt?: string | Date }).startAt,
+            endAt: (raw.discount as { endAt?: string | Date }).endAt,
+          }
+        : undefined,
     badge: typeof raw.badge === "string" ? raw.badge : undefined,
     category: typeof raw.category === "string" ? raw.category : undefined,
     stock: typeof raw.stock === "number" ? raw.stock : undefined,
@@ -124,6 +143,13 @@ export default function ProductDetailClient({ slug }: ProductDetailClientProps) 
         const mapped = products
           .map(normalizeProduct)
           .filter((item): item is ProductShape => item !== null)
+          .map((item) => ({
+            ...item,
+            price: resolveProductPricing({
+              price: item.price,
+              discount: item.discount,
+            }).finalPrice,
+          }))
           .filter((item) => item.slug !== detailProduct.slug)
           .slice(0, 12);
 
@@ -141,15 +167,16 @@ export default function ProductDetailClient({ slug }: ProductDetailClientProps) 
     return () => controller.abort();
   }, [slug]);
 
-  const pseudoDiscount = useMemo(() => {
-    if (!product) return 0;
-    return Math.max(8, Math.min(48, 14 + (product.slug.length % 34)));
-  }, [product]);
-
-  const oldPrice = useMemo(() => {
-    if (!product) return 0;
-    return Math.round(product.price / (1 - pseudoDiscount / 100));
-  }, [product, pseudoDiscount]);
+  const pricing = useMemo(
+    () =>
+      product
+        ? resolveProductPricing({
+            price: product.price,
+            discount: product.discount,
+          })
+        : null,
+    [product]
+  );
 
   if (loading) {
     return (
@@ -268,12 +295,18 @@ export default function ProductDetailClient({ slug }: ProductDetailClientProps) 
                 </div>
 
                 <div className="product-price-block">
-                  <div className="product-price-market-row">
-                    <p className="product-old-price">Rs {oldPrice.toLocaleString()}</p>
-                    <p className="product-discount-pill">-{pseudoDiscount}%</p>
-                  </div>
+                  {pricing?.hasDiscount && (
+                    <div className="product-price-market-row">
+                      <p className="product-old-price">
+                        Rs {pricing.basePrice.toLocaleString()}
+                      </p>
+                      <p className="product-discount-pill">
+                        -{pricing.discountPercent}%
+                      </p>
+                    </div>
+                  )}
                   <p className="product-price">
-                    Rs {Number(product.price).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    Rs {Number(pricing?.finalPrice ?? product.price).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                   </p>
                   <p className="product-price-note">Device price in PKR. Taxes and installation may apply.</p>
                 </div>
@@ -293,7 +326,7 @@ export default function ProductDetailClient({ slug }: ProductDetailClientProps) 
                 <BuyNowActions
                   id={product.id}
                   name={product.name}
-                  price={product.price}
+                  price={pricing?.finalPrice ?? product.price}
                   slug={product.slug}
                   image={product.image}
                   compact
@@ -352,7 +385,7 @@ export default function ProductDetailClient({ slug }: ProductDetailClientProps) 
           slug: product.slug,
           name: product.name,
           image: product.image,
-          price: product.price,
+          price: pricing?.finalPrice ?? product.price,
         }}
         newProducts={newProducts}
       />

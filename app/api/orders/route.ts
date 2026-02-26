@@ -68,10 +68,13 @@ export async function POST(req: NextRequest) {
       items,
       status,
       paymentStatus,
+      paymentMethod,
+      paymentReference,
       shippingCost,
       taxTotal,
       discountTotal,
       couponCode,
+      note,
     } = body;
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -195,6 +198,11 @@ export async function POST(req: NextRequest) {
     const nextPayment: PaymentStatus = ALLOWED_PAYMENT.includes(paymentStatus)
       ? paymentStatus
       : "unpaid";
+    const cleanPaymentMethod =
+      typeof paymentMethod === "string" ? paymentMethod.trim() : "";
+    const cleanPaymentReference =
+      typeof paymentReference === "string" ? paymentReference.trim() : "";
+    const cleanNote = typeof note === "string" ? note.trim() : "";
 
     const grossProfit = total - cogsTotal;
     const netProfit = grossProfit - cleanShipping;
@@ -212,6 +220,17 @@ export async function POST(req: NextRequest) {
       netProfit,
       currency: "PKR",
       paymentStatus: nextPayment,
+      paymentMethod: cleanPaymentMethod || undefined,
+      paymentReference: cleanPaymentReference || undefined,
+      notes: cleanNote
+        ? [
+            {
+              text: cleanNote,
+              by: normalizedCustomer?.email || normalizedCustomer?.name || "customer",
+              createdAt: new Date(),
+            },
+          ]
+        : [],
       timeline: [
         {
           type: "order_created",
@@ -219,6 +238,19 @@ export async function POST(req: NextRequest) {
           by: normalizedCustomer?.email || normalizedCustomer?.name || "system",
           at: new Date(),
         },
+        ...(cleanPaymentMethod
+          ? [
+              {
+                type: "payment_method_selected",
+                message: `Payment method selected: ${cleanPaymentMethod}`,
+                by: normalizedCustomer?.email || normalizedCustomer?.name || "customer",
+                at: new Date(),
+                meta: cleanPaymentReference
+                  ? { paymentReference: cleanPaymentReference }
+                  : undefined,
+              },
+            ]
+          : []),
         ...(appliedCouponCode
           ? [
               {
