@@ -54,6 +54,7 @@ export default function AdminHeader() {
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
 
   // ------------ THEME (same behavior as main Header) ------------
   const [theme, setTheme] = useState<"dark" | "light">("light");
@@ -82,6 +83,26 @@ export default function AdminHeader() {
   }, [router]);
 
   useEffect(() => {
+    const adminRoutes = [
+      "/admin/dashboard",
+      "/admin/products",
+      "/admin/orders",
+      "/admin/customers",
+      "/admin/payments",
+      "/admin/coupons",
+      "/admin/reports",
+      "/admin/notifications",
+      "/admin/settings",
+      "/admin/analytics",
+      "/admin/account",
+    ];
+
+    for (const route of adminRoutes) {
+      router.prefetch(route);
+    }
+  }, [router]);
+
+  useEffect(() => {
     if (typeof window === "undefined" || !themeLoaded) return;
     document.documentElement.setAttribute("data-theme", theme);
     window.localStorage.setItem("vals-theme", theme);
@@ -103,14 +124,19 @@ export default function AdminHeader() {
     };
   }, [collapsed]);
 
+  useEffect(() => {
+    setPendingHref(null);
+  }, [pathname]);
+
   const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   }, []);
 
   // ------------ NAV ACTIVE HELPERS ------------
   const isActive = useCallback((href: string) => {
+    if (pendingHref === href) return true;
     return pathname === href || pathname.startsWith(`${href}/`);
-  }, [pathname]);
+  }, [pathname, pendingHref]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -172,6 +198,9 @@ export default function AdminHeader() {
             href={item.href}
             className={`admin-side-link${isActive(item.href) ? " active" : ""}`}
             title={collapsed ? item.label : undefined}
+            onMouseEnter={() => router.prefetch(item.href)}
+            onFocus={() => router.prefetch(item.href)}
+            onClick={() => setPendingHref(item.href)}
           >
             <span className="admin-side-link-icon"><SidebarIcon icon={item.icon} /></span>
             <span className="admin-side-link-label">{item.label}</span>
