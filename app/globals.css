@@ -259,9 +259,9 @@ html[data-theme="light"] .theme-switch-knob {
 .nav-link {
   position: relative;
   text-decoration: none;
-  color: rgba(155, 158, 185, 0.75);
-  font-size: 0.96rem;
-  font-weight: 500;
+  color: rgba(203, 213, 225, 0.9);
+  font-size: 0.98rem;
+  font-weight: 600;
   padding: 8px 0;
   transition: color 0.25s ease, opacity 0.25s ease;
 }
@@ -278,7 +278,7 @@ html[data-theme="light"] .theme-switch-knob {
 }
 
 html[data-theme="light"] .nav-link {
-  color: rgba(71, 85, 105, 0.95);
+  color: #334155;
 }
 
 html[data-theme="light"] .nav-link:hover,
@@ -458,10 +458,12 @@ html[data-theme="light"] .hero {
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin: 0 0 30px;
+  text-shadow: 0 10px 28px rgba(2, 6, 23, 0.3);
 }
 
 html[data-theme="light"] .hero-title {
   color: #020617;
+  text-shadow: 0 8px 22px rgba(255, 255, 255, 0.22);
 }
 
 .hero-badge {
@@ -486,13 +488,14 @@ html[data-theme="light"] .hero-badge {
 
 .hero-subtitle {
   font-size: 0.98rem;
-  color: rgba(222, 228, 255, 0.9);
+  color: rgba(226, 232, 240, 0.95);
   max-width: 430px;
   margin: 0 0 26px;
+  text-shadow: 0 2px 12px rgba(2, 6, 23, 0.3);
 }
 
 html[data-theme="light"] .hero-subtitle {
-  color: #4b5563;
+  color: #334155;
 }
 
 .hero-actions {
@@ -597,12 +600,12 @@ html[data-theme="light"] .trust-pill {
 .btn-primary {
   background: var(--primary);
   color: #ffffff;
-  box-shadow: 0 12px 26px rgba(255, 37, 57, 0.45);
+  box-shadow: 0 8px 18px rgba(255, 37, 57, 0.34);
 }
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 18px 38px rgba(255, 37, 57, 0.6);
+  box-shadow: 0 12px 24px rgba(255, 37, 57, 0.42);
 }
 
 /* Hero media */
@@ -1398,23 +1401,27 @@ html[data-theme="light"] .card-title {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 2.9fr);
   gap: 40px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .plans-intro {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  padding-top: 8px;
 }
 
 .plans-intro .section-title {
-  margin-bottom: 24px;
+  margin-bottom: 6px;
 }
 
 .plans-text {
   font-size: 0.9rem;
   color: var(--text-muted);
   max-width: 230px;
-  margin-top: auto;
+  margin-top: 0;
+  line-height: 1.55;
 }
 
 .pricing-grid {
@@ -1538,7 +1545,7 @@ html[data-theme="light"] .price-list li {
 
 .footer-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.35fr) minmax(220px, 1.05fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.15fr) minmax(220px, 1fr);
   gap: 28px;
   align-items: flex-start;
   padding: 20px 0;
@@ -1551,17 +1558,17 @@ html[data-theme="light"] .price-list li {
 }
 
 .footer-card {
-  padding: 16px;
+  padding: 14px;
   border-radius: var(--r-md);
   border: 1px solid var(--border-soft);
   background: rgba(8, 11, 18, 0.72);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.36);
+  box-shadow: 0 6px 16px rgba(2, 6, 23, 0.24);
 }
 
 html[data-theme="light"] .footer-card {
-  background: rgba(243, 244, 255, 0.35);
+  background: rgba(243, 244, 255, 0.24);
   border-color: rgba(148, 163, 184, 0.24);
-  box-shadow: none;
+  box-shadow: 0 4px 12px rgba(148, 163, 184, 0.16);
 }
 
 .footer-logo {
@@ -4408,27 +4415,76 @@ html[data-theme="light"] .mobile-theme-label {
 }
 
 .auth-page {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-height: 80vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 80px 16px;
+  background:
+    linear-gradient(118deg, rgba(4, 8, 18, 0.7), rgba(6, 10, 20, 0.56)),
+    radial-gradient(620px 320px at 7% 6%, rgba(255, 37, 57, 0.2), transparent 64%),
+    radial-gradient(560px 340px at 93% 94%, rgba(56, 189, 248, 0.16), transparent 72%),
+    url("/images/hero-trucks.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.auth-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(3, 7, 18, 0.38) 0%, rgba(3, 7, 18, 0.1) 44%, rgba(3, 7, 18, 0.02) 100%),
+    radial-gradient(circle at 50% 50%, transparent 40%, rgba(2, 6, 23, 0.5) 100%),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .auth-card {
   width: 100%;
   max-width: 420px;
-  background: var(--surface-3);
+  background:
+    linear-gradient(145deg, rgba(12, 19, 34, 0.98), rgba(8, 13, 24, 0.95));
   border-radius: var(--r-lg);
   padding: 22px 22px 26px;
-  border: 1px solid var(--border-soft);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  box-shadow:
+    0 24px 58px rgba(2, 6, 23, 0.74),
+    0 0 0 1px rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+html[data-theme="light"] .auth-page {
+  background:
+    linear-gradient(118deg, rgba(255, 255, 255, 0.52), rgba(241, 245, 255, 0.56)),
+    radial-gradient(650px 330px at 6% -10%, rgba(255, 37, 57, 0.12), transparent 68%),
+    radial-gradient(620px 350px at 96% 102%, rgba(56, 189, 248, 0.11), transparent 72%),
+    url("/images/hero-trucks.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+html[data-theme="light"] .auth-page::before {
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.2) 0%, rgba(15, 23, 42, 0.06) 45%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(circle at 50% 50%, transparent 48%, rgba(148, 163, 184, 0.26) 100%),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.09) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(148, 163, 184, 0.09) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
 }
 
 html[data-theme="light"] .auth-card {
-  background: #ffffff;
-  border-color: rgba(148, 163, 184, 0.25);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(160deg, #ffffff 0%, #f8fbff 54%, #f3f7ff 100%);
+  border-color: rgba(148, 163, 184, 0.34);
+  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.18);
 }
 
 .auth-title {
@@ -4556,7 +4612,8 @@ html[data-theme="light"] .auth-alt-btn {
 .admin-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
+  grid-template-columns: var(--admin-sidebar-width, 250px) minmax(0, 1fr);
+  transition: grid-template-columns 0.25s ease;
 }
 
 .admin-shell-content {
@@ -4575,6 +4632,7 @@ html[data-theme="light"] .auth-alt-btn {
   background: linear-gradient(180deg, rgba(7, 10, 18, 0.96), rgba(10, 14, 24, 0.92));
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.02);
   z-index: 20;
+  overflow: visible;
 }
 
 .admin-sidebar-top {
@@ -4582,18 +4640,63 @@ html[data-theme="light"] .auth-alt-btn {
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
+.admin-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-sidebar-brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-sidebar-identity {
+  min-width: 0;
+}
+
 .admin-sidebar-brand {
-  font-size: 1.08rem;
+  font-size: 1.16rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-strong);
+  line-height: 1.1;
 }
 
 .admin-sidebar-role {
-  margin-top: 4px;
-  font-size: 0.76rem;
+  margin-top: 2px;
+  font-size: 0.72rem;
   color: var(--text-muted-3);
+  white-space: nowrap;
+}
+
+.admin-sidebar-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-side-control {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(148, 163, 184, 0.36);
+  color: rgba(226, 232, 240, 0.92);
+  background: rgba(15, 23, 42, 0.44);
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.admin-side-control:hover {
+  border-color: rgba(96, 165, 250, 0.42);
+  background: rgba(59, 130, 246, 0.12);
+  color: #ffffff;
 }
 
 .admin-sidebar-nav {
@@ -4607,6 +4710,7 @@ html[data-theme="light"] .auth-alt-btn {
 .admin-side-link {
   display: flex;
   align-items: center;
+  gap: 10px;
   min-height: 38px;
   padding: 8px 11px;
   border-radius: 10px;
@@ -4614,6 +4718,19 @@ html[data-theme="light"] .auth-alt-btn {
   color: rgba(226, 232, 240, 0.9);
   border: 1px solid transparent;
   transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-side-link-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-side-link-label {
+  white-space: nowrap;
 }
 
 .admin-side-link:hover {
@@ -4639,7 +4756,79 @@ html[data-theme="light"] .auth-alt-btn {
 
 .admin-side-store,
 .admin-side-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   justify-content: center;
+}
+
+.admin-sidebar.is-collapsed .admin-sidebar-head {
+  justify-content: center;
+}
+
+.admin-sidebar.is-collapsed .admin-sidebar-brand-wrap {
+  display: none;
+}
+
+.admin-sidebar.is-collapsed .admin-sidebar-identity,
+.admin-sidebar.is-collapsed .admin-side-link-label {
+  display: none;
+}
+
+.admin-sidebar.is-collapsed .admin-sidebar-controls {
+  position: static;
+  transform: none;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.admin-sidebar.is-collapsed .admin-sidebar-top {
+  min-height: 0;
+}
+
+.admin-sidebar.is-collapsed .admin-sidebar-nav {
+  padding-right: 0;
+}
+
+.admin-sidebar.is-collapsed .admin-side-link {
+  justify-content: center;
+  padding: 9px;
+}
+
+.admin-sidebar.is-collapsed .admin-sidebar-bottom {
+  align-items: center;
+}
+
+.admin-sidebar.is-collapsed .admin-side-store,
+.admin-sidebar.is-collapsed .admin-side-logout {
+  width: 44px;
+  min-height: 40px;
+  padding: 0;
+  border-radius: 12px;
+}
+
+.admin-sidebar-collapse-handle {
+  position: absolute;
+  top: 50%;
+  right: -14px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 56px;
+  border-radius: var(--r-pill);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.96);
+  color: rgba(226, 232, 240, 0.94);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.admin-sidebar-collapse-handle:hover {
+  color: #ffffff;
+  border-color: rgba(96, 165, 250, 0.55);
+  background: rgba(30, 41, 59, 0.98);
 }
 
 .admin-form-card {
@@ -5056,6 +5245,30 @@ html[data-theme="light"] .admin-sidebar-bottom {
   border-color: rgba(148, 163, 184, 0.28);
 }
 
+html[data-theme="light"] .admin-side-control {
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(148, 163, 184, 0.45);
+}
+
+html[data-theme="light"] .admin-side-control:hover {
+  color: #0f172a;
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+html[data-theme="light"] .admin-sidebar-collapse-handle {
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(148, 163, 184, 0.48);
+}
+
+html[data-theme="light"] .admin-sidebar-collapse-handle:hover {
+  color: #0f172a;
+  border-color: rgba(59, 130, 246, 0.4);
+  background: #ffffff;
+}
+
 html[data-theme="light"] .admin-side-link {
   color: #334155;
 }
@@ -5308,6 +5521,32 @@ html[data-theme="light"] .form-input:focus {
     align-items: center;
     border-top: none;
     padding-top: 0;
+  }
+
+  .admin-sidebar.is-collapsed .admin-sidebar-identity,
+  .admin-sidebar.is-collapsed .admin-side-link-label {
+    display: inline;
+  }
+
+  .admin-sidebar.is-collapsed .admin-sidebar-controls {
+    position: static;
+    transform: none;
+    flex-direction: row;
+  }
+
+  .admin-sidebar.is-collapsed .admin-sidebar-top {
+    min-height: 0;
+  }
+
+  .admin-sidebar.is-collapsed .admin-side-store,
+  .admin-sidebar.is-collapsed .admin-side-logout {
+    width: auto;
+    padding: 8px 14px;
+    border-radius: 10px;
+  }
+
+  .admin-sidebar-collapse-handle {
+    display: none;
   }
 
   .admin-side-store,

@@ -30,8 +30,11 @@ export async function GET() {
     let avatarUrl: string | null = null;
 
     if (payload.role === "admin") {
-      const admin = await Admin.findById(payload.sub).select("name").lean<{ name?: string }>();
+      const admin = await Admin.findById(payload.sub)
+        .select("name avatarUrl")
+        .lean<{ name?: string; avatarUrl?: string }>();
       name = admin?.name ?? null;
+      avatarUrl = admin?.avatarUrl ?? null;
     } else {
       const user = await User.findById(payload.sub)
         .select("name firstName lastName avatarUrl")

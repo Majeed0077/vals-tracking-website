@@ -75,6 +75,10 @@ export async function POST(req: NextRequest) {
       role,
     });
 
+    if (role === "admin") {
+      await Admin.findByIdAndUpdate(account._id, { lastLoginAt: new Date() });
+    }
+
     const res = NextResponse.json({ success: true, role }, { status: 200 });
 
     // 4) Single HTTP-only cookie for both roles

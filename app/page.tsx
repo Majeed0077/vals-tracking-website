@@ -174,13 +174,16 @@ export default function HomePage() {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="#ff2539"
-                  strokeWidth="2"
+                  strokeWidth="1.9"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <rect x="3" y="11" width="18" height="6" rx="2" ry="2"></rect>
-                  <circle cx="7.5" cy="17" r="1.5"></circle>
-                  <circle cx="16.5" cy="17" r="1.5"></circle>
+                  <path d="M12 3a4.5 4.5 0 0 0-4.5 4.5c0 3.9 4.5 8.2 4.5 8.2s4.5-4.3 4.5-8.2A4.5 4.5 0 0 0 12 3Z"></path>
+                  <circle cx="12" cy="7.5" r="1.5"></circle>
+                  <path d="M3 16h18"></path>
+                  <rect x="5" y="16" width="14" height="4.5" rx="1.8"></rect>
+                  <circle cx="8" cy="20.5" r="1"></circle>
+                  <circle cx="16" cy="20.5" r="1"></circle>
                 </svg>
               </div>
               <h3 className="card-title">Vehicle Tracking</h3>
@@ -201,13 +204,17 @@ export default function HomePage() {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="#ff2539"
-                  strokeWidth="2"
+                  strokeWidth="1.9"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                  <line x1="12" y1="9" x2="12" y2="13"></line>
-                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  <path d="M4 7.5 12 3l8 4.5-8 4.5L4 7.5Z"></path>
+                  <path d="M4 7.5V16.5L12 21l8-4.5V7.5"></path>
+                  <circle cx="12" cy="12" r="3.2"></circle>
+                  <path d="M12 7v2"></path>
+                  <path d="M12 15v2"></path>
+                  <path d="M7 12h2"></path>
+                  <path d="M15 12h2"></path>
                 </svg>
               </div>
               <h3 className="card-title">Asset Tracking</h3>
@@ -228,14 +235,19 @@ export default function HomePage() {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="#ff2539"
-                  strokeWidth="2"
+                  strokeWidth="1.9"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <rect x="2" y="3" width="20" height="14" rx="2"></rect>
-                  <line x1="2" y1="11" x2="22" y2="11"></line>
-                  <line x1="8" y1="21" x2="16" y2="21"></line>
-                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                  <rect x="3" y="4" width="14" height="12" rx="2"></rect>
+                  <path d="M7 12V9"></path>
+                  <path d="M10 12V7"></path>
+                  <path d="M13 12v-2"></path>
+                  <circle cx="18.5" cy="16.5" r="2.5"></circle>
+                  <path d="M18.5 13.3v1.2"></path>
+                  <path d="M18.5 18.5v1.2"></path>
+                  <path d="M21.7 16.5h-1.2"></path>
+                  <path d="M16.5 16.5h-1.2"></path>
                 </svg>
               </div>
               <h3 className="card-title">Fleet Management</h3>
@@ -256,14 +268,17 @@ export default function HomePage() {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="#ff2539"
-                  strokeWidth="2"
+                  strokeWidth="1.9"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <path d="M12 2v20"></path>
-                  <path d="M4.93 4.93l14.14 14.14"></path>
-                  <path d="M19.07 4.93L4.93 19.07"></path>
-                  <path d="M2 12h20"></path>
+                  <path d="M8 5a2 2 0 1 1 4 0v8.3a3.2 3.2 0 1 1-4 0V5Z"></path>
+                  <path d="M10 9V5"></path>
+                  <path d="M10 15.5a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2Z"></path>
+                  <path d="M17.4 6.2v3.6"></path>
+                  <path d="M15.6 8h3.6"></path>
+                  <path d="m16.1 6.7 2.6 2.6"></path>
+                  <path d="m18.7 6.7-2.6 2.6"></path>
                 </svg>
               </div>
               <h3 className="card-title">Cold Chain Monitoring</h3>

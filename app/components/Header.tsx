@@ -122,6 +122,7 @@ export default function Header() {
 
   // ---------------- THEME STATE (your existing logic) ----------------
   const [theme, setTheme] = useState<"dark" | "light">("light");
+  const [themeLoaded, setThemeLoaded] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -136,15 +137,17 @@ export default function Header() {
       window.matchMedia("(prefers-color-scheme: dark)").matches;
 
     const initialTheme = stored ?? (prefersDark ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", initialTheme);
     setTheme(initialTheme);
+    setThemeLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !themeLoaded) return;
 
     document.documentElement.setAttribute("data-theme", theme);
     window.localStorage.setItem("vals-theme", theme);
-  }, [theme]);
+  }, [theme, themeLoaded]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
@@ -261,6 +264,7 @@ export default function Header() {
     auth.name?.trim().charAt(0).toUpperCase() ||
     auth.email?.trim().charAt(0).toUpperCase() ||
     "U";
+  const settingsHref = auth.role === "admin" ? "/admin/account" : "/account/settings";
 
   // ---------------- DYNAMIC LOGO ----------------
   const logoSrc =
@@ -379,7 +383,7 @@ export default function Header() {
                           Admin Dashboard
                         </Link>
                       )}
-                      <Link href="/account/settings" className="profile-dropdown-link">
+                      <Link href={settingsHref} className="profile-dropdown-link">
                         Settings
                       </Link>
                       <button
@@ -510,7 +514,7 @@ export default function Header() {
                     Dashboard
                   </Link>
                 )}
-                <Link href="/account/settings" className="nav-auth-btn login-btn">
+                <Link href={settingsHref} className="nav-auth-btn login-btn">
                   Settings
                 </Link>
                 <Link href="/store/cart" className="nav-cart-btn">
