@@ -12,30 +12,41 @@ export default function ContactPage() {
 
       <main>
         <section className="section-block">
-          <div className="container contact-grid">
-            <div className="contact-info">
-              <p>
-                <strong>Phone</strong>
-                <br />
-               +923 111 10 10 66
-                <br />
-                +923 111 10 10 66
+          <div className="container contact-grid contact-grid--redesign">
+            <div className="contact-info contact-info--redesign">
+              <span className="contact-eyebrow">Talk To Our Team</span>
+              <h2 className="contact-title">Let&apos;s design the right tracking stack for your fleet.</h2>
+              <p className="contact-intro">
+                Share your route volume, fleet size and requirements. We will propose
+                the right plan, deployment model and implementation timeline.
               </p>
-              <p>
-                <strong>Email</strong>
-                <br />
-                <a href="mailto:info@valstracking.com">
-                  info@valstracking.com
-                </a>
-              </p>
-              <p>
-                <strong>Office</strong>
-                <br />
-                V4P9+9G3,National Aerospace science and technology park (Nastp), Faisal Cantonment, Karachi, Karachi City, Sindh
-              </p>
+
+              <div className="contact-info-cards">
+                <div className="contact-info-card">
+                  <strong>Phone</strong>
+                  <span>+92 311 101 06 66</span>
+                  <span>+92 311 101 06 66</span>
+                </div>
+                <div className="contact-info-card">
+                  <strong>Email</strong>
+                  <a href="mailto:info@valstracking.com">info@valstracking.com</a>
+                </div>
+                <div className="contact-info-card">
+                  <strong>Office</strong>
+                  <span>
+                    V4P9+9G3, National Aerospace Science and Technology Park (NASTP),
+                    Faisal Cantonment, Karachi, Sindh.
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="contact-form">
+            <div className="contact-form contact-form--redesign">
+              <div className="contact-form-head">
+                <h3>Request a callback</h3>
+                <p>Typical response within one business day.</p>
+              </div>
+
               <form>
                 <div className="contact-form-row">
                   <div style={{ flex: 1 }}>

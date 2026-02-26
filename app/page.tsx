@@ -117,31 +117,36 @@ export default function HomePage() {
       {/* WHY CHOOSE US */}
       <section className="why">
         <div className="container">
-          <h2 className="section-title">Why Choose Us</h2>
+          <div className="section-head">
+            <h2 className="section-title">Why Choose Us</h2>
+          </div>
+          <p className="section-lead">
+            Built for reliability, response speed and operational clarity across Pakistan.
+          </p>
 
-          <div className="why-grid">
-            <div className="why-item">
+          <div className="why-grid home-why-grid">
+            <div className="why-item home-why-item">
               <span className="tick"></span>
               <div className="why-text">
                 <span className="why-title">Since 2016</span>
                 <span className="why-sub">Field-proven deployments</span>
               </div>
             </div>
-            <div className="why-item">
+            <div className="why-item home-why-item">
               <span className="tick"></span>
               <div className="why-text">
                 <span className="why-title">24/7 Monitoring</span>
                 <span className="why-sub">Always-on command center</span>
               </div>
             </div>
-            <div className="why-item">
+            <div className="why-item home-why-item">
               <span className="tick"></span>
               <div className="why-text">
                 <span className="why-title">Pakistan-wide Coverage</span>
                 <span className="why-sub">Urban to remote routes</span>
               </div>
             </div>
-            <div className="why-item">
+            <div className="why-item home-why-item">
               <span className="tick"></span>
               <div className="why-text">
                 <span className="why-title">Advanced Technology</span>
@@ -164,9 +169,9 @@ export default function HomePage() {
             Full-stack tracking solutions built for logistics, field teams, and high-value assets.
           </p>
 
-          <div className="cards-grid">
+          <div className="cards-grid home-services-grid">
             {/* Vehicle Tracking */}
-            <article className="card">
+            <article className="card home-service-card">
               <div className="card-icon">
                 <svg
                   width="28"
@@ -190,13 +195,17 @@ export default function HomePage() {
               <p className="card-text">
                 Track and control your vehicles in real-time.
               </p>
+              <div className="home-service-tags">
+                <span className="home-service-tag">Live trips</span>
+                <span className="home-service-tag">Ignition alerts</span>
+              </div>
               <Link href="/services/vehicle-tracking" className="card-link">
                 Learn More &gt;
               </Link>
             </article>
 
             {/* Asset Tracking */}
-            <article className="card">
+            <article className="card home-service-card">
               <div className="card-icon">
                 <svg
                   width="28"
@@ -221,13 +230,17 @@ export default function HomePage() {
               <p className="card-text">
                 Monitor valuable assets with precision.
               </p>
+              <div className="home-service-tags">
+                <span className="home-service-tag">Geo-fencing</span>
+                <span className="home-service-tag">Anti-loss</span>
+              </div>
               <Link href="/services/asset-tracking" className="card-link">
                 Learn More &gt;
               </Link>
             </article>
 
             {/* Fleet Management */}
-            <article className="card">
+            <article className="card home-service-card">
               <div className="card-icon">
                 <svg
                   width="28"
@@ -254,13 +267,17 @@ export default function HomePage() {
               <p className="card-text">
                 Improve efficiency with our fleet management system.
               </p>
+              <div className="home-service-tags">
+                <span className="home-service-tag">Dashboards</span>
+                <span className="home-service-tag">Insights</span>
+              </div>
               <Link href="/services/fleet-management" className="card-link">
                 Learn More &gt;
               </Link>
             </article>
 
             {/* Cold Chain Monitoring */}
-            <article className="card">
+            <article className="card home-service-card">
               <div className="card-icon">
                 <svg
                   width="28"
@@ -285,6 +302,10 @@ export default function HomePage() {
               <p className="card-text">
                 Ensure the integrity of temperature-sensitive shipments.
               </p>
+              <div className="home-service-tags">
+                <span className="home-service-tag">Temp logs</span>
+                <span className="home-service-tag">Threshold alerts</span>
+              </div>
               <Link href="/services/cold-chain" className="card-link">
                 Learn More &gt;
               </Link>
@@ -297,7 +318,9 @@ export default function HomePage() {
       <section className="plans">
         <div className="container plans-inner">
           <div className="plans-intro">
-            <h2 className="section-title">Our Plans</h2>
+            <div className="section-head">
+              <h2 className="section-title">Our Plans</h2>
+            </div>
             <p className="plans-text">
               Ready to Transform
               <br />
@@ -305,54 +328,75 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="pricing-grid">
-            <article className="price-card">
-              <h3 className="price-name">Silver</h3>
-              <p className="price-value">
-                R <span>15,000</span>
-                <span className="price-period">/year</span>
+          <div className="packages-grid home-packages-grid">
+            <article className="package-card package-card--silver">
+              <div className="package-card-head">
+                <div>
+                  <h3 className="package-name">Silver</h3>
+                  <p className="package-subtitle">For growing fleets</p>
+                </div>
+              </div>
+              <p className="package-price">
+                <span className="package-currency">Rs.</span>
+                <strong>15,000</strong>
+                <span className="package-period">/year</span>
               </p>
-              <ul className="price-list">
+              <p className="package-coverage">Up to 25 vehicles</p>
+              <ul className="package-list">
                 <li>24/7 Monitoring</li>
                 <li>Real-Time Alerts</li>
-                <li>Geofencing</li>
+                <li>Geo-fencing</li>
                 <li>Mobile Access</li>
               </ul>
-              <Link href="/contact" className="btn btn-primary price-btn">
+              <Link href="/contact" className="btn btn-primary price-btn package-btn">
                 Get Started
               </Link>
             </article>
 
-            <article className="price-card price-card-highlight">
-              <h3 className="price-name">Gold</h3>
-              <p className="price-value">
-                R <span>20,000</span>
-                <span className="price-period">/year</span>
+            <article className="package-card package-card--gold">
+              <div className="package-card-head">
+                <div>
+                  <h3 className="package-name">Gold</h3>
+                  <p className="package-subtitle">Most popular for operations teams</p>
+                </div>
+                <span className="package-badge">Most Popular</span>
+              </div>
+              <p className="package-price">
+                <span className="package-currency">Rs.</span>
+                <strong>20,000</strong>
+                <span className="package-period">/year</span>
               </p>
-              <ul className="price-list">
-                <li>24/7 Monitoring</li>
-                <li>Real-Time Alerts</li>
-                <li>Geofencing</li>
-                <li>Mobile Access</li>
+              <p className="package-coverage">Up to 75 vehicles</p>
+              <ul className="package-list">
+                <li>Advanced Alerts</li>
+                <li>Driver Analytics</li>
+                <li>Geo-fencing</li>
+                <li>Priority Support</li>
               </ul>
-              <Link href="/contact" className="btn btn-primary price-btn">
+              <Link href="/contact" className="btn btn-primary price-btn package-btn">
                 Get Started
               </Link>
             </article>
 
-            <article className="price-card">
-              <h3 className="price-name">Fleet</h3>
-              <p className="price-value">
-                <span>Custom Pricing</span>
+            <article className="package-card package-card--fleet">
+              <div className="package-card-head">
+                <div>
+                  <h3 className="package-name">Fleet</h3>
+                  <p className="package-subtitle">Enterprise-grade deployment</p>
+                </div>
+              </div>
+              <p className="package-price">
+                <strong>Custom Pricing</strong>
               </p>
-              <ul className="price-list">
-                <li>24/7 Monitoring</li>
-                <li>Real-Time Alerts</li>
-                <li>Geofencing</li>
-                <li>Mobile Access</li>
+              <p className="package-coverage">100+ vehicles</p>
+              <ul className="package-list">
+                <li>Custom SLAs</li>
+                <li>API Integration</li>
+                <li>Dedicated Manager</li>
+                <li>Onboarding Support</li>
               </ul>
-              <Link href="/contact" className="btn btn-primary price-btn">
-                Get Started
+              <Link href="/contact" className="btn btn-primary price-btn package-btn">
+                Talk to Sales
               </Link>
             </article>
           </div>

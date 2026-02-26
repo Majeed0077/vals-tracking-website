@@ -11,6 +11,16 @@ type StoreClientProps = {
   products: StoreProduct[];
 };
 
+type ApiProduct = {
+  _id: string | { toString(): string };
+  name?: string;
+  slug?: string;
+  image?: string;
+  price?: number;
+  badge?: string;
+  category?: string;
+};
+
 const CATEGORY_OPTIONS = [
   { label: "All", value: "all" },
   { label: "Tracker", value: "tracker" },
@@ -42,6 +52,36 @@ function getProductMeta(product: StoreProduct) {
   };
 }
 
+function normalizeApiProduct(value: unknown): StoreProduct | null {
+  if (!value || typeof value !== "object") return null;
+  const obj = value as ApiProduct;
+
+  const idValue = obj._id;
+  const id =
+    typeof idValue === "string"
+      ? idValue
+      : idValue && typeof idValue === "object" && "toString" in idValue
+        ? idValue.toString()
+        : "";
+
+  const name = typeof obj.name === "string" ? obj.name.trim() : "";
+  const slug = typeof obj.slug === "string" ? obj.slug.trim() : "";
+  const image = typeof obj.image === "string" ? obj.image : "";
+  const price = Number(obj.price ?? 0);
+
+  if (!id || !name || !slug || !image || Number.isNaN(price)) return null;
+
+  return {
+    _id: id,
+    name,
+    slug,
+    image,
+    price,
+    badge: typeof obj.badge === "string" ? obj.badge : undefined,
+    category: typeof obj.category === "string" ? obj.category : undefined,
+  };
+}
+
 export default function StoreClient({ products }: StoreClientProps) {
   const {
     category,
@@ -62,10 +102,72 @@ export default function StoreClient({ products }: StoreClientProps) {
   } = useShopStore((state) => state);
 
   const [searchInput, setSearchInput] = useState(search);
+  const [catalog, setCatalog] = useState<StoreProduct[]>(products);
+  const [catalogLoading, setCatalogLoading] = useState(products.length === 0);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
 
   useEffect(() => {
     setSearchInput(search);
   }, [search]);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      setCatalog(products);
+      setCatalogLoading(false);
+      setCatalogError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        setCatalogLoading(true);
+        setCatalogError(null);
+
+        const res = await fetch("/api/products", {
+          cache: "force-cache",
+          signal: controller.signal,
+        });
+
+        const data: unknown = await res.json();
+        const ok =
+          typeof data === "object" &&
+          data !== null &&
+          "success" in data &&
+          (data as { success: unknown }).success === true;
+
+        if (!res.ok || !ok) {
+          throw new Error("Failed to load catalog");
+        }
+
+        const list =
+          typeof data === "object" &&
+          data !== null &&
+          "products" in data &&
+          Array.isArray((data as { products?: unknown }).products)
+            ? (data as { products: unknown[] }).products
+            : [];
+
+        const normalized = list
+          .map(normalizeApiProduct)
+          .filter((item): item is StoreProduct => item !== null);
+
+        setCatalog(normalized);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Store catalog load failed:", error);
+        setCatalog([]);
+        setCatalogError("Catalog is loading slowly. Please wait a moment.");
+      } finally {
+        if (!controller.signal.aborted) {
+          setCatalogLoading(false);
+        }
+      }
+    })();
+
+    return () => controller.abort();
+  }, [products]);
 
   const applySearch = useCallback(
     (value: string) => {
@@ -77,7 +179,7 @@ export default function StoreClient({ products }: StoreClientProps) {
 
   const filteredProducts = useMemo(() => {
     const normalized = searchInput.trim().toLowerCase();
-    let list = products;
+    let list = catalog;
 
     if (category !== "all") {
       list = list.filter((p) => p.category === category);
@@ -106,7 +208,7 @@ export default function StoreClient({ products }: StoreClientProps) {
     }
 
     return sorted;
-  }, [products, category, searchInput, sort]);
+  }, [catalog, category, searchInput, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / perPage));
 
@@ -220,10 +322,24 @@ export default function StoreClient({ products }: StoreClientProps) {
             </div>
 
             <div className="store-content">
-              {filteredProducts.length === 0 ? (
+              {catalogLoading ? (
+                <div className="store-grid store-grid-skeleton" aria-live="polite">
+                  {Array.from({ length: Math.max(6, perPage) }).map((_, index) => (
+                    <article key={index} className="store-skeleton-card">
+                      <div className="store-skeleton-image" />
+                      <div className="store-skeleton-line store-skeleton-line--title" />
+                      <div className="store-skeleton-line" />
+                      <div className="store-skeleton-line store-skeleton-line--short" />
+                    </article>
+                  ))}
+                </div>
+              ) : filteredProducts.length === 0 ? (
                 <div className="store-empty">
                   <h3>No products match your filters.</h3>
-                  <p>Try clearing filters or searching with a different keyword.</p>
+                  <p>
+                    {catalogError ||
+                      "Try clearing filters or searching with a different keyword."}
+                  </p>
                 </div>
               ) : (
                 <>

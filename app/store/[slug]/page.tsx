@@ -6,7 +6,7 @@ import Image from "next/image";
 import BuyNowActions from "@/app/components/BuyNowActions";
 import ProductDetailRows from "@/app/store/components/ProductDetailRows";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 type ProductDoc = {
   _id: { toString(): string };
