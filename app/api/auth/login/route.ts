@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import Admin from "@/models/Admin";
 import User from "@/models/User";
 import { signAuthToken, TOKEN_NAME, TOKEN_MAX_AGE } from "@/lib/auth";
+import { enforceRateLimit, enforceSameOrigin, getClientKey } from "@/lib/security";
 
 type AccountDoc = {
   _id: { toString(): string };
@@ -14,6 +15,12 @@ type AccountDoc = {
 
 export async function POST(req: NextRequest) {
   try {
+    const originError = enforceSameOrigin(req);
+    if (originError) return originError;
+
+    const rlError = enforceRateLimit(`auth-login:${getClientKey(req)}`, 15, 60_000);
+    if (rlError) return rlError;
+
     await connectDB();
 
     const { email, password } = (await req.json()) as {

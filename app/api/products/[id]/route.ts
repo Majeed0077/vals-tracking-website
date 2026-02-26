@@ -1,9 +1,13 @@
 // app/api/products/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
-import mongoose from "mongoose";
+import InventoryMovement from "@/models/InventoryMovement";
 import { requireAdmin } from "@/lib/routeAuth";
+import { enforceRateLimit, enforceSameOrigin, getClientKey } from "@/lib/security";
+import { logAudit } from "@/lib/audit";
+import { notify } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +28,35 @@ function escapeRegex(input: string) {
   return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// GET /api/products/[id] (id can be ObjectId OR slug)
+function normalizeVariants(variants: unknown) {
+  if (!Array.isArray(variants)) return undefined;
+
+  type VariantShape = {
+    sku: string;
+    name: string | undefined;
+    priceDelta: number;
+    stock: number;
+  };
+
+  return variants
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const obj = item as Record<string, unknown>;
+      const sku = String(obj.sku ?? "").trim();
+      if (!sku) return null;
+
+      return {
+        sku,
+        name: String(obj.name ?? "").trim() || undefined,
+        priceDelta: Number(obj.priceDelta ?? 0) || 0,
+        stock: Math.max(0, Number(obj.stock ?? 0) || 0),
+      };
+    })
+    .filter(
+      (value): value is VariantShape => value !== null
+    );
+}
+
 export async function GET(_req: NextRequest, context: RouteContext) {
   try {
     await connectDB();
@@ -40,7 +72,6 @@ export async function GET(_req: NextRequest, context: RouteContext) {
       const cleanSlug = slugify(decodeURIComponent(idOrSlug));
       product = await Product.findOne({ slug: cleanSlug }).lean();
 
-      // fallback for old DB slugs like "Basic plan"
       if (!product) {
         const rawDecoded = decodeURIComponent(idOrSlug).trim();
         product = await Product.findOne({
@@ -77,9 +108,14 @@ export async function GET(_req: NextRequest, context: RouteContext) {
   }
 }
 
-// PUT /api/products/[id] (expects real ObjectId)
 export async function PUT(req: NextRequest, context: RouteContext) {
   try {
+    const originError = enforceSameOrigin(req);
+    if (originError) return originError;
+
+    const rlError = enforceRateLimit(`product-update:${getClientKey(req)}`, 60, 60_000);
+    if (rlError) return rlError;
+
     const auth = await requireAdmin();
     if (!auth.ok) return auth.response;
 
@@ -94,7 +130,20 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     }
 
     const body = await req.json();
-    const { name, slug, price, image, category, stock, badge, description } = body;
+    const {
+      name,
+      slug,
+      sku,
+      price,
+      costPrice,
+      image,
+      category,
+      stock,
+      lowStockThreshold,
+      variants,
+      badge,
+      description,
+    } = body;
 
     const product = await Product.findById(id);
     if (!product) {
@@ -104,7 +153,8 @@ export async function PUT(req: NextRequest, context: RouteContext) {
       );
     }
 
-    // slug changed => normalize + unique check
+    const prevStock = product.stock ?? 0;
+
     if (typeof slug === "string") {
       const nextSlug = slugify(slug);
       if (nextSlug && nextSlug !== product.slug) {
@@ -120,14 +170,94 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     }
 
     if (name !== undefined) product.name = String(name).trim();
-    if (price !== undefined) product.price = Number(price);
-    if (image !== undefined) product.image = image;
-    if (category !== undefined) product.category = category;
-    if (stock !== undefined) product.stock = Number(stock);
+    if (sku !== undefined) product.sku = String(sku ?? "").trim() || undefined;
+    if (price !== undefined) {
+      const numericPrice = Number(price);
+      if (Number.isNaN(numericPrice) || numericPrice < 0) {
+        return NextResponse.json(
+          { success: false, message: "price must be a non-negative number" },
+          { status: 400 }
+        );
+      }
+      product.price = numericPrice;
+    }
+
+    if (costPrice !== undefined) {
+      const numericCost = Number(costPrice);
+      if (Number.isNaN(numericCost) || numericCost < 0) {
+        return NextResponse.json(
+          { success: false, message: "costPrice must be a non-negative number" },
+          { status: 400 }
+        );
+      }
+      product.costPrice = numericCost;
+    }
+
+    if (image !== undefined) product.image = String(image);
+    if (category !== undefined) product.category = String(category ?? "").trim() || "general";
+
+    if (stock !== undefined) {
+      const numericStock = Number(stock);
+      if (Number.isNaN(numericStock) || numericStock < 0) {
+        return NextResponse.json(
+          { success: false, message: "stock must be a non-negative number" },
+          { status: 400 }
+        );
+      }
+      product.stock = numericStock;
+    }
+
+    if (lowStockThreshold !== undefined) {
+      const threshold = Number(lowStockThreshold);
+      if (Number.isNaN(threshold) || threshold < 0) {
+        return NextResponse.json(
+          { success: false, message: "lowStockThreshold must be a non-negative number" },
+          { status: 400 }
+        );
+      }
+      product.lowStockThreshold = threshold;
+    }
+
+    if (variants !== undefined) {
+      product.variants = normalizeVariants(variants) ?? [];
+    }
+
     if (badge !== undefined) product.badge = badge;
     if (description !== undefined) product.description = description;
 
     await product.save();
+
+    if (stock !== undefined && product.stock !== prevStock) {
+      const delta = product.stock - prevStock;
+      await InventoryMovement.create({
+        productId: product._id,
+        type: "adjustment",
+        quantity: delta,
+        reason: "Manual stock update",
+        createdBy: auth.payload.email,
+      });
+    }
+
+    await logAudit({
+      action: "product.update",
+      actorId: auth.payload.sub,
+      actorEmail: auth.payload.email,
+      actorRole: auth.payload.role,
+      entityType: "Product",
+      entityId: product._id.toString(),
+      message: `Updated product ${product.name}`,
+    });
+
+    if ((product.stock ?? 0) <= (product.lowStockThreshold ?? 0)) {
+      await notify({
+        channel: "in_app",
+        to: "admin",
+        message: `Low stock alert: ${product.name} has ${product.stock} units left.`,
+        templateKey: "low_stock_alert",
+        relatedEntityType: "Product",
+        relatedEntityId: product._id.toString(),
+      });
+    }
 
     return NextResponse.json({ success: true, product }, { status: 200 });
   } catch (error) {
@@ -150,9 +280,14 @@ export async function PUT(req: NextRequest, context: RouteContext) {
   }
 }
 
-// DELETE /api/products/[id] (expects real ObjectId)
-export async function DELETE(_req: NextRequest, context: RouteContext) {
+export async function DELETE(req: NextRequest, context: RouteContext) {
   try {
+    const originError = enforceSameOrigin(req);
+    if (originError) return originError;
+
+    const rlError = enforceRateLimit(`product-delete:${getClientKey(req)}`, 30, 60_000);
+    if (rlError) return rlError;
+
     const auth = await requireAdmin();
     if (!auth.ok) return auth.response;
 
@@ -175,6 +310,26 @@ export async function DELETE(_req: NextRequest, context: RouteContext) {
         { status: 404 }
       );
     }
+
+    if ((deleted.stock ?? 0) > 0) {
+      await InventoryMovement.create({
+        productId: deleted._id,
+        type: "delete",
+        quantity: -Math.abs(deleted.stock ?? 0),
+        reason: "Product deleted",
+        createdBy: auth.payload.email,
+      });
+    }
+
+    await logAudit({
+      action: "product.delete",
+      actorId: auth.payload.sub,
+      actorEmail: auth.payload.email,
+      actorRole: auth.payload.role,
+      entityType: "Product",
+      entityId: deleted._id.toString(),
+      message: `Deleted product ${deleted.name}`,
+    });
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

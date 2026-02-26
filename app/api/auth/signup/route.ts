@@ -5,11 +5,18 @@ import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import { signAuthToken, TOKEN_NAME, TOKEN_MAX_AGE } from "@/lib/auth";
+import { enforceRateLimit, enforceSameOrigin, getClientKey } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const originError = enforceSameOrigin(req);
+    if (originError) return originError;
+
+    const rlError = enforceRateLimit(`auth-signup:${getClientKey(req)}`, 8, 60_000);
+    if (rlError) return rlError;
+
     await connectDB();
 
     const { name, email, password } = await req.json();

@@ -17,7 +17,7 @@ export interface AuthTokenPayload {
 }
 
 export const TOKEN_NAME = "vals_token";
-export const TOKEN_MAX_AGE = 60 * 60 * 24 * 7; // 7 days (seconds)
+export const TOKEN_MAX_AGE = 60 * 60 * 24 * 15; // 15 days (seconds)
 
 export function signAuthToken(payload: AuthTokenPayload): string {
   // ✅ Types are now satisfied

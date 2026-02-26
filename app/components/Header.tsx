@@ -4,7 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useShopStore } from "@/app/state/useShopStore";
 
 const navItems = [
@@ -61,21 +61,39 @@ type AuthState = {
   checked: boolean;
   loggedIn: boolean;
   role: UserRole;
+  email?: string | null;
+  name?: string | null;
+  avatarUrl?: string | null;
 };
 
 // ✅ Type-safe union for /api/auth/me responses (old + new supported)
 type MeApiResponse =
-  | { loggedIn?: boolean; role?: UserRole; email?: string | null; userId?: string | null }
+  | {
+      loggedIn?: boolean;
+      role?: UserRole;
+      email?: string | null;
+      userId?: string | null;
+      user?: { role?: UserRole; name?: string | null; avatarUrl?: string | null };
+    }
   | { authenticated?: boolean; user?: { role?: UserRole } };
 
 function normalizeMeResponse(
   data: MeApiResponse
-): { loggedIn: boolean; role: UserRole } {
+): {
+  loggedIn: boolean;
+  role: UserRole;
+  email: string | null;
+  name: string | null;
+  avatarUrl: string | null;
+} {
   // supports: { loggedIn: true, role: "admin" | "user" }
   if ("loggedIn" in data && typeof data.loggedIn === "boolean") {
     return {
       loggedIn: data.loggedIn,
       role: data.role ?? null,
+      email: data.email ?? null,
+      name: data.user?.name ?? null,
+      avatarUrl: data.user?.avatarUrl ?? null,
     };
   }
 
@@ -84,10 +102,13 @@ function normalizeMeResponse(
     return {
       loggedIn: data.authenticated,
       role: data.user?.role ?? null,
+      email: null,
+      name: null,
+      avatarUrl: null,
     };
   }
 
-  return { loggedIn: false, role: null };
+  return { loggedIn: false, role: null, email: null, name: null, avatarUrl: null };
 }
 
 export default function Header() {
@@ -150,7 +171,12 @@ export default function Header() {
     checked: false,
     loggedIn: false,
     role: null,
+    email: null,
+    name: null,
+    avatarUrl: null,
   });
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -171,10 +197,20 @@ export default function Header() {
           checked: true,
           loggedIn: !!normalized.loggedIn,
           role: normalized.role ?? null,
+          email: normalized.email ?? null,
+          name: normalized.name ?? null,
+          avatarUrl: normalized.avatarUrl ?? null,
         });
       } catch {
         if (cancelled) return;
-        setAuth({ checked: true, loggedIn: false, role: null });
+        setAuth({
+          checked: true,
+          loggedIn: false,
+          role: null,
+          email: null,
+          name: null,
+          avatarUrl: null,
+        });
       }
     }
 
@@ -188,17 +224,43 @@ export default function Header() {
   useEffect(() => {
     setMobileOpen(false);
     setActiveMega(null);
+    setProfileMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const onClickOutside = (event: MouseEvent) => {
+      if (!profileMenuRef.current) return;
+      if (!profileMenuRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
 
   async function handleLogout() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
-      setAuth({ checked: true, loggedIn: false, role: null });
+      setAuth({
+        checked: true,
+        loggedIn: false,
+        role: null,
+        email: null,
+        name: null,
+        avatarUrl: null,
+      });
+      setProfileMenuOpen(false);
       router.push("/");
       router.refresh();
     }
   }
+
+  const profileInitial =
+    auth.name?.trim().charAt(0).toUpperCase() ||
+    auth.email?.trim().charAt(0).toUpperCase() ||
+    "U";
 
   // ---------------- DYNAMIC LOGO ----------------
   const logoSrc =
@@ -289,19 +351,47 @@ export default function Header() {
 
             {auth.checked && auth.loggedIn && (
               <div className="auth-buttons">
-                {auth.role === "admin" && (
-                  <Link href="/admin/dashboard" className="nav-auth-btn login-btn">
-                    Dashboard
-                  </Link>
-                )}
+                <div className="profile-menu-wrap" ref={profileMenuRef}>
+                  <button
+                    type="button"
+                    className="profile-trigger"
+                    onClick={() => setProfileMenuOpen((prev) => !prev)}
+                  >
+                    {auth.avatarUrl ? (
+                      <Image
+                        src={auth.avatarUrl}
+                        alt="Profile"
+                        width={28}
+                        height={28}
+                        unoptimized
+                        className="profile-avatar"
+                      />
+                    ) : (
+                      <span className="profile-avatar profile-avatar-fallback">{profileInitial}</span>
+                    )}
+                    <span className="profile-name">{auth.name || "My Account"}</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="nav-auth-btn signup-btn"
-                >
-                  Logout
-                </button>
+                  {profileMenuOpen && (
+                    <div className="profile-dropdown">
+                      {auth.role === "admin" && (
+                        <Link href="/admin/dashboard" className="profile-dropdown-link">
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      <Link href="/account/settings" className="profile-dropdown-link">
+                        Settings
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="profile-dropdown-link profile-dropdown-danger"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -420,6 +510,9 @@ export default function Header() {
                     Dashboard
                   </Link>
                 )}
+                <Link href="/account/settings" className="nav-auth-btn login-btn">
+                  Settings
+                </Link>
                 <Link href="/store/cart" className="nav-cart-btn">
                   <span className="nav-cart-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24">

@@ -22,11 +22,13 @@ type Order = {
   customer?: OrderCustomer;
   items: OrderItem[];
   total: number;
+  cogsTotal?: number;
+  refundTotal?: number;
+  grossProfit?: number;
+  netProfit?: number;
   status: OrderStatus;
   createdAt?: string | Date;
 };
-
-const DEFAULT_PROFIT_MARGIN = 32;
 
 function getErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error) return err.message;
@@ -38,7 +40,6 @@ export default function AdminAnalyticsPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [profitMargin, setProfitMargin] = useState<number>(DEFAULT_PROFIT_MARGIN);
 
   const loadOrders = useCallback(async () => {
     try {
@@ -104,11 +105,14 @@ export default function AdminAnalyticsPage() {
     const cancelledValue = cancelledOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
     const averageOrderValue = activeOrders > 0 ? grossRevenue / activeOrders : 0;
 
-    const marginFactor = Math.max(0, Math.min(100, profitMargin)) / 100;
-    const estimatedProfit = deliveredRevenue * marginFactor;
-    const estimatedCogs = deliveredRevenue - estimatedProfit;
-    const estimatedLoss = cancelledValue * marginFactor;
-    const netOutcome = estimatedProfit - estimatedLoss;
+    const actualCogs = nonCancelled.reduce((sum, order) => sum + Number(order.cogsTotal || 0), 0);
+    const actualRefunds = orders.reduce((sum, order) => sum + Number(order.refundTotal || 0), 0);
+    const actualProfit = nonCancelled.reduce(
+      (sum, order) => sum + Number(order.netProfit ?? order.grossProfit ?? 0),
+      0
+    );
+    const actualLoss = cancelledValue + actualRefunds;
+    const netOutcome = actualProfit - actualLoss;
 
     const statusCounts: Record<OrderStatus, number> = {
       pending: 0,
@@ -164,16 +168,16 @@ export default function AdminAnalyticsPage() {
       deliveredRevenue,
       cancelledValue,
       averageOrderValue,
-      estimatedProfit,
-      estimatedCogs,
-      estimatedLoss,
+      actualProfit,
+      actualCogs,
+      actualLoss,
       netOutcome,
       statusCounts,
       monthlySeries,
       maxRevenue,
       maxOrders,
     };
-  }, [orders, profitMargin]);
+  }, [orders]);
 
   return (
     <main className="section-block">
@@ -192,13 +196,13 @@ export default function AdminAnalyticsPage() {
             <p className="admin-stat-sub">Delivered: Rs {Math.round(analytics.deliveredRevenue).toLocaleString()}</p>
           </div>
           <div className="admin-stat-card">
-            <p className="admin-stat-label">Estimated Profit</p>
-            <p className="admin-stat-value admin-profit">Rs {Math.round(analytics.estimatedProfit).toLocaleString()}</p>
-            <p className="admin-stat-sub">COGS: Rs {Math.round(analytics.estimatedCogs).toLocaleString()}</p>
+            <p className="admin-stat-label">Net Profit</p>
+            <p className="admin-stat-value admin-profit">Rs {Math.round(analytics.actualProfit).toLocaleString()}</p>
+            <p className="admin-stat-sub">COGS: Rs {Math.round(analytics.actualCogs).toLocaleString()}</p>
           </div>
           <div className="admin-stat-card">
-            <p className="admin-stat-label">Estimated Loss</p>
-            <p className="admin-stat-value admin-loss">Rs {Math.round(analytics.estimatedLoss).toLocaleString()}</p>
+            <p className="admin-stat-label">Loss & Refunds</p>
+            <p className="admin-stat-value admin-loss">Rs {Math.round(analytics.actualLoss).toLocaleString()}</p>
             <p className="admin-stat-sub">Cancelled: Rs {Math.round(analytics.cancelledValue).toLocaleString()}</p>
           </div>
           <div className="admin-stat-card">
@@ -228,17 +232,10 @@ export default function AdminAnalyticsPage() {
                 <p className="admin-chart-subtitle">Last 6 months performance snapshot</p>
               </div>
               <div className="admin-margin-control">
-                <label htmlFor="profit-margin">Profit margin</label>
-                <select
-                  id="profit-margin"
-                  className="order-status-select"
-                  value={profitMargin}
-                  onChange={(e) => setProfitMargin(Number(e.target.value))}
-                >
-                  <option value={25}>25%</option>
-                  <option value={32}>32%</option>
-                  <option value={40}>40%</option>
-                </select>
+                <label>Accounting mode</label>
+                <span className="order-status-select" style={{ display: "inline-flex", alignItems: "center" }}>
+                  Real Data
+                </span>
               </div>
             </div>
             <RevenueTrendChart

@@ -1,11 +1,21 @@
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
-import { TOKEN_NAME } from "@/lib/auth";
+import { TOKEN_NAME, verifyAuthToken } from "@/lib/auth";
 
 const ADMIN_PATH_PREFIX = "/admin";
 
+function applySecurityHeaders(res: NextResponse, requestId: string): NextResponse {
+  res.headers.set("x-request-id", requestId);
+  res.headers.set("x-content-type-options", "nosniff");
+  res.headers.set("x-frame-options", "DENY");
+  res.headers.set("referrer-policy", "strict-origin-when-cross-origin");
+  res.headers.set("permissions-policy", "geolocation=(), microphone=(), camera=()");
+  return res;
+}
+
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const requestId = crypto.randomUUID();
 
   // Public routes (no auth needed)
   if (
@@ -16,26 +26,30 @@ export function proxy(req: NextRequest) {
     pathname === "/login" ||
     pathname === "/signup" ||
     pathname === "/admin/login" ||
+    pathname.startsWith("/api/ops/health") ||
     pathname.startsWith("/store")
   ) {
-    return NextResponse.next();
+    return applySecurityHeaders(NextResponse.next(), requestId);
   }
 
-  // Read cookie (no JWT verify for now)
+  // Read cookie + verify JWT
   const token = req.cookies.get(TOKEN_NAME)?.value;
+  const payload = token ? verifyAuthToken(token) : null;
 
   // Admin-only routes
   if (pathname.startsWith(ADMIN_PATH_PREFIX)) {
-    if (!token) {
+    if (!token || !payload || payload.role !== "admin") {
       // no token => send to /admin/login (which redirects to /login)
-      return NextResponse.redirect(new URL("/admin/login", req.url));
+      return applySecurityHeaders(
+        NextResponse.redirect(new URL("/admin/login", req.url)),
+        requestId
+      );
     }
-    // token present => allow (we trust role for now)
-    return NextResponse.next();
+    return applySecurityHeaders(NextResponse.next(), requestId);
   }
 
   // default allow
-  return NextResponse.next();
+  return applySecurityHeaders(NextResponse.next(), requestId);
 }
 
 export const config = {

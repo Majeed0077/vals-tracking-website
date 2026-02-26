@@ -26,6 +26,22 @@ const SORT_OPTIONS = [
   { label: "Name: Z-A", value: "name-desc" },
 ] as const;
 
+function getProductMeta(product: StoreProduct) {
+  const seed = product.slug
+    .split("")
+    .reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+  const discount = 12 + (seed % 38); // 12% - 49%
+  const rating = 3.8 + ((seed % 12) / 10); // 3.8 - 4.9
+  const ratingCount = 10 + (seed % 320);
+  const oldPrice = Math.round(product.price / (1 - discount / 100));
+  return {
+    discount,
+    rating: Math.min(5, Number(rating.toFixed(1))),
+    ratingCount,
+    oldPrice,
+  };
+}
+
 export default function StoreClient({ products }: StoreClientProps) {
   const {
     category,
@@ -123,12 +139,12 @@ export default function StoreClient({ products }: StoreClientProps) {
         <section className="section-block">
           <div className="container store-container">
 
-            <div className="store-toolbar">
+            <div className="store-toolbar store-toolbar-market">
               <div className="store-toolbar-row">
                 <div className="store-toolbar-title">
-                  <h2 className="store-title-heading">Products</h2>
+                  <h2 className="store-title-heading">Shop All</h2>
                   <p className="store-title-sub">
-                    Select from our most popular GPS trackers, dash cams and smart watches.
+                    Handpicked devices and accessories with trusted local support.
                   </p>
                 </div>
 
@@ -216,7 +232,7 @@ export default function StoreClient({ products }: StoreClientProps) {
                       const inWishlist = wishlist.some((w) => w.slug === p.slug);
                       const inCart = cart.some((item) => item.slug === p.slug);
                       return (
-                        <article className="store-card" key={p._id}>
+                        <article className="store-card store-card-market" key={p._id}>
                           {p.badge && <span className="store-badge-top">{p.badge}</span>}
 
                           <div className="store-image-box">
@@ -232,7 +248,7 @@ export default function StoreClient({ products }: StoreClientProps) {
 
                             {p.category && <span className="store-category">{p.category}</span>}
                             <h3 className="store-title">{p.name}</h3>
-                            <p className="store-price">Rs {formatPrice(p.price)}</p>
+                            <StorePriceAndRating product={p} formatPrice={formatPrice} />
 
                         <div className="store-card-actions">
                           <button
@@ -328,5 +344,29 @@ export default function StoreClient({ products }: StoreClientProps) {
         </section>
       </main>
     </>
+  );
+}
+
+function StorePriceAndRating({
+  product,
+  formatPrice,
+}: {
+  product: StoreProduct;
+  formatPrice: (value: number) => string;
+}) {
+  const meta = getProductMeta(product);
+
+  return (
+    <div className="store-market-meta">
+      <p className="store-price">
+        Rs {formatPrice(product.price)}
+        <span className="store-old-price">Rs {formatPrice(meta.oldPrice)}</span>
+        <span className="store-discount">-{meta.discount}%</span>
+      </p>
+      <p className="store-rating-line">
+        <span className="store-rating-stars">{"★".repeat(5)}</span>
+        <span className="store-rating-count">({meta.ratingCount})</span>
+      </p>
+    </div>
   );
 }

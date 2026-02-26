@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import Image from "next/image";
 import BuyNowActions from "@/app/components/BuyNowActions";
+import ProductDetailRows from "@/app/store/components/ProductDetailRows";
 
 export const dynamic = "force-dynamic";
 
@@ -75,17 +76,24 @@ export default async function ProductDetailPage({
     stock: doc.stock,
   };
 
+  const latestDocs = (await Product.find({ slug: { $ne: product.slug } })
+    .sort({ createdAt: -1 })
+    .limit(12)
+    .lean()) as ProductDoc[];
+
+  const newProducts = latestDocs.map((item) => ({
+    id: item._id.toString(),
+    slug: item.slug,
+    name: item.name,
+    image: item.image,
+    price: item.price,
+  }));
+
+  const pseudoDiscount = Math.max(8, Math.min(48, 14 + (product.slug.length % 34)));
+  const oldPrice = Math.round(product.price / (1 - pseudoDiscount / 100));
+
   return (
     <>
-      <section className="page-hero">
-        <div className="container">
-          <h1 className="page-hero-title">{product.name}</h1>
-          <p className="page-hero-subtitle">
-            Detailed information for {product.name}.
-          </p>
-        </div>
-      </section>
-
       <div className="container product-back-row">
         <Link href="/store" className="product-back-top">
           <span className="btn-icon">
@@ -108,7 +116,7 @@ export default async function ProductDetailPage({
       <main>
         <section className="section-block">
           <div className="container">
-            <div className="product-layout">
+            <div className="product-layout product-market-layout product-market-shell">
               {/* LEFT: image */}
               <div className="product-media">
                 {/* MAIN IMAGE */}
@@ -154,8 +162,20 @@ export default async function ProductDetailPage({
                   </div>
                 </div>
               </div>
-              {/* RIGHT: advanced info panel */}
-              <div className="product-info product-panel">
+              {/* CENTER: advanced info panel */}
+              <div className="product-info product-panel product-market-main">
+                <div className="product-market-head">
+                  <h1 className="product-market-title">{product.name}</h1>
+                  <p className="product-market-sub">
+                    Built for Pakistan operations, fleet-grade reliability, and long-term durability.
+                  </p>
+                  <div className="product-market-tags">
+                    <span>Official Warranty</span>
+                    <span>Fast Delivery</span>
+                    <span>Trusted Seller</span>
+                  </div>
+                </div>
+
                 {/* top row: badge + rating */}
                 <div className="product-header-row">
                   {product.badge && (
@@ -179,6 +199,10 @@ export default async function ProductDetailPage({
 
                 {/* price + small note */}
                 <div className="product-price-block">
+                  <div className="product-price-market-row">
+                    <p className="product-old-price">Rs {oldPrice.toLocaleString()}</p>
+                    <p className="product-discount-pill">-{pseudoDiscount}%</p>
+                  </div>
                   <p className="product-price">
                     Rs{" "}
                     {Number(product.price).toLocaleString(undefined, {
@@ -205,45 +229,114 @@ export default async function ProductDetailPage({
                   </div>
                 )}
 
-                {/* key highlights */}
-                <ul className="product-highlights">
-                  <li>
-                    Original {product.category === "watch" ? "Garmin" : "OEM"}{" "}
-                    hardware
-                  </li>
-                  <li>Fully compatible with VALS Tracking platform</li>
-                  <li>Includes 12-month standard warranty</li>
-                  <li>Local support &amp; installation assistance available</li>
-                </ul>
-
                 <BuyNowActions
                   id={product.id}
                   name={product.name}
                   price={product.price}
                   slug={product.slug}
                   image={product.image}
+                  compact
                 />
 
-                {/* trust + meta */}
-                <div className="product-meta-row">
-                  <p className="product-meta-note">
-                    53 people are viewing this right now.
-                  </p>
-                  <p className="product-meta-note">
-                    Guaranteed safe checkout with your trusted payment provider.
-                  </p>
-
+                <details className="product-more-details">
+                  <summary>Product details & support</summary>
+                  <ul className="product-highlights product-highlights--compact">
+                    <li>
+                      Original {product.category === "watch" ? "Garmin" : "OEM"} hardware
+                    </li>
+                    <li>Fully compatible with VALS Tracking platform</li>
+                    <li>Includes 12-month standard warranty</li>
+                    <li>Local support & installation assistance available</li>
+                  </ul>
+                  <p className="product-meta-note">53 people are viewing this right now.</p>
                   <div className="product-trust-row">
                     <span className="product-trust-pill">Secure payment</span>
                     <span className="product-trust-pill">Warranty included</span>
                     <span className="product-trust-pill">Local support</span>
                   </div>
-                </div>
+                </details>
               </div>
+
+              {/* RIGHT: delivery/seller cards */}
+              <aside className="product-side-column">
+                <section className="product-side-card">
+                  <h3>Delivery Options</h3>
+                  <div className="product-side-row">
+                    <span>Location</span>
+                    <strong>Sindh, Karachi</strong>
+                  </div>
+                  <div className="product-side-row">
+                    <span>Standard Delivery</span>
+                    <strong>Rs 140</strong>
+                  </div>
+                  <div className="product-side-row">
+                    <span>Collection Point</span>
+                    <strong>Rs 30</strong>
+                  </div>
+                  <div className="product-side-row">
+                    <span>Cash on Delivery</span>
+                    <strong>Available</strong>
+                  </div>
+                </section>
+
+                <section className="product-side-card">
+                  <h3>Return & Warranty</h3>
+                  <div className="product-side-row">
+                    <span>Return</span>
+                    <strong>14 days easy return</strong>
+                  </div>
+                  <div className="product-side-row">
+                    <span>Warranty</span>
+                    <strong>12 months</strong>
+                  </div>
+                </section>
+
+                <section className="product-side-card">
+                  <h3>Sold by</h3>
+                  <p className="product-side-seller">VALS Official Store</p>
+                  <div className="product-seller-metrics">
+                    <div>
+                      <span>Seller Rating</span>
+                      <strong>93%</strong>
+                    </div>
+                    <div>
+                      <span>Ship On Time</span>
+                      <strong>99%</strong>
+                    </div>
+                    <div>
+                      <span>Response Time</span>
+                      <strong>Fast</strong>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="product-side-card">
+                  <h3>Buyer Confidence</h3>
+                  <div className="product-side-row">
+                    <span>People viewing now</span>
+                    <strong>53</strong>
+                  </div>
+                  <div className="product-side-row">
+                    <span>Secure checkout</span>
+                    <strong>Enabled</strong>
+                  </div>
+                </section>
+              </aside>
             </div>
           </div>
         </section>
       </main>
+
+      <ProductDetailRows
+        current={{
+          id: product.id,
+          slug: product.slug,
+          name: product.name,
+          image: product.image,
+          price: product.price,
+        }}
+        newProducts={newProducts}
+      />
     </>
   );
 }

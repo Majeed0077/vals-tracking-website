@@ -49,6 +49,10 @@ type Order = {
   customer?: OrderCustomer;
   items: OrderItem[];
   total: number;
+  cogsTotal?: number;
+  refundTotal?: number;
+  grossProfit?: number;
+  netProfit?: number;
   status: OrderStatus;
   createdAt?: string | Date;
 };
@@ -73,7 +77,6 @@ const INITIAL_FORM: FormState = {
   badge: "",
 };
 
-const DEFAULT_PROFIT_MARGIN = 32;
 
 // helper: file -> base64 (data URL)
 function fileToBase64(file: File): Promise<string> {
@@ -147,11 +150,14 @@ export default function AdminDashboardPage() {
     const cancelledValue = cancelledOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
     const averageOrderValue = activeOrders > 0 ? grossRevenue / activeOrders : 0;
 
-    const marginFactor = DEFAULT_PROFIT_MARGIN / 100;
-    const estimatedProfit = deliveredRevenue * marginFactor;
-    const estimatedCogs = deliveredRevenue - estimatedProfit;
-    const estimatedLoss = cancelledValue * marginFactor;
-    const netOutcome = estimatedProfit - estimatedLoss;
+    const actualCogs = nonCancelled.reduce((sum, order) => sum + Number(order.cogsTotal || 0), 0);
+    const actualRefunds = orders.reduce((sum, order) => sum + Number(order.refundTotal || 0), 0);
+    const actualProfit = nonCancelled.reduce(
+      (sum, order) => sum + Number(order.netProfit ?? order.grossProfit ?? 0),
+      0
+    );
+    const actualLoss = cancelledValue + actualRefunds;
+    const netOutcome = actualProfit - actualLoss;
 
     const statusCounts: Record<OrderStatus, number> = {
       pending: 0,
@@ -213,9 +219,9 @@ export default function AdminDashboardPage() {
       deliveredRevenue,
       cancelledValue,
       averageOrderValue,
-      estimatedProfit,
-      estimatedCogs,
-      estimatedLoss,
+      actualProfit,
+      actualCogs,
+      actualLoss,
       netOutcome,
       statusCounts,
       monthlySeries,
@@ -590,19 +596,19 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="admin-stat-card">
-            <p className="admin-stat-label">Estimated Profit</p>
+            <p className="admin-stat-label">Net Profit</p>
             <p className="admin-stat-value admin-profit">
-              Rs {Math.round(analytics.estimatedProfit).toLocaleString()}
+              Rs {Math.round(analytics.actualProfit).toLocaleString()}
             </p>
             <p className="admin-stat-sub">
-              COGS: Rs {Math.round(analytics.estimatedCogs).toLocaleString()}
+              COGS: Rs {Math.round(analytics.actualCogs).toLocaleString()}
             </p>
           </div>
 
           <div className="admin-stat-card">
-            <p className="admin-stat-label">Estimated Loss</p>
+            <p className="admin-stat-label">Loss & Refunds</p>
             <p className="admin-stat-value admin-loss">
-              Rs {Math.round(analytics.estimatedLoss).toLocaleString()}
+              Rs {Math.round(analytics.actualLoss).toLocaleString()}
             </p>
             <p className="admin-stat-sub">
               Cancelled value: Rs {Math.round(analytics.cancelledValue).toLocaleString()}

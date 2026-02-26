@@ -44,19 +44,7 @@ export default function AdminHeader() {
 
   // ------------ NAV ACTIVE HELPERS ------------
   const isActive = useCallback((href: string) => {
-    if (href === "/admin/dashboard") {
-      return pathname === "/admin/dashboard";
-    }
-    if (href === "/admin/products") {
-      return pathname === "/admin/products";
-    }
-    if (href === "/admin/orders") {
-      return pathname === "/admin/orders";
-    }
-    if (href === "/admin/analytics") {
-      return pathname === "/admin/analytics";
-    }
-    return pathname === href;
+    return pathname === href || pathname.startsWith(`${href}/`);
   }, [pathname]);
 
   const handleLogout = useCallback(async () => {
@@ -73,96 +61,67 @@ export default function AdminHeader() {
   }, [router]);
 
   return (
-    <header className="header">
-      <div className="container header-inner">
-        {/* LEFT: title */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span
-            style={{
-              fontSize: "1.1rem",
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-            }}
-          >
-            VALS Admin
-          </span>
-          <span
-            style={{
-              fontSize: "0.8rem",
-              opacity: 0.7,
-            }}
-          >
-            Dashboard
-          </span>
-        </div>
-
-        {/* CENTER: nav */}
-        <nav className="nav">
-          <Link
-            href="/admin/dashboard"
-            className={`nav-link${
-              isActive("/admin/dashboard") ? " active" : ""
-            }`}
-          >
-            Overview
-          </Link>
-
-          <Link
-            href="/admin/products"
-            className={`nav-link${isActive("/admin/products") ? " active" : ""}`}
-          >
-            Products
-          </Link>
-
-          <Link
-            href="/admin/orders"
-            className={`nav-link${isActive("/admin/orders") ? " active" : ""}`}
-          >
-            Orders
-          </Link>
-
-          <Link
-            href="/admin/analytics"
-            className={`nav-link${isActive("/admin/analytics") ? " active" : ""}`}
-          >
-            Analytics
-          </Link>
-
-          <Link href="/store" className="nav-link">
-            View Store
-          </Link>
-        </nav>
-
-        {/* RIGHT: user info + logout + theme switch */}
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ textAlign: "right", fontSize: "0.8rem" }}>
-            <div style={{ fontWeight: 500 }}>Admin</div>
-            <div style={{ opacity: 0.7 }}>Store Manager</div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="nav-auth-btn login-btn"
-            style={{ borderRadius: 999, paddingInline: 16 }}
-          >
-            {loggingOut ? "Logging out..." : "Logout"}
-          </button>
-
-          <button
-            type="button"
-            className={`theme-switch ${
-              theme === "dark" ? "theme-switch--on" : ""
-            }`}
-            onClick={toggleTheme}
-            aria-label="Toggle dark/light theme"
-          >
-            <span className="theme-switch-knob" />
-          </button>
-        </div>
+    <aside className="admin-sidebar">
+      <div className="admin-sidebar-top">
+        <div className="admin-sidebar-brand">VALS Admin</div>
+        <div className="admin-sidebar-role">Store Manager</div>
       </div>
-    </header>
+
+      <nav className="admin-sidebar-nav">
+        <Link href="/admin/dashboard" className={`admin-side-link${isActive("/admin/dashboard") ? " active" : ""}`}>
+          Overview
+        </Link>
+        <Link href="/admin/products" className={`admin-side-link${isActive("/admin/products") ? " active" : ""}`}>
+          Products
+        </Link>
+        <Link href="/admin/orders" className={`admin-side-link${isActive("/admin/orders") ? " active" : ""}`}>
+          Orders
+        </Link>
+        <Link href="/admin/customers" className={`admin-side-link${isActive("/admin/customers") ? " active" : ""}`}>
+          Customers
+        </Link>
+        <Link href="/admin/payments" className={`admin-side-link${isActive("/admin/payments") ? " active" : ""}`}>
+          Payments
+        </Link>
+        <Link href="/admin/coupons" className={`admin-side-link${isActive("/admin/coupons") ? " active" : ""}`}>
+          Coupons
+        </Link>
+        <Link href="/admin/reports" className={`admin-side-link${isActive("/admin/reports") ? " active" : ""}`}>
+          Reports
+        </Link>
+        <Link href="/admin/notifications" className={`admin-side-link${isActive("/admin/notifications") ? " active" : ""}`}>
+          Notifications
+        </Link>
+        <Link href="/admin/settings" className={`admin-side-link${isActive("/admin/settings") ? " active" : ""}`}>
+          Settings
+        </Link>
+        <Link href="/admin/analytics" className={`admin-side-link${isActive("/admin/analytics") ? " active" : ""}`}>
+          Analytics
+        </Link>
+      </nav>
+
+      <div className="admin-sidebar-bottom">
+        <Link href="/store" className="btn btn-secondary admin-side-store">
+          View Store
+        </Link>
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="nav-auth-btn login-btn admin-side-logout"
+        >
+          {loggingOut ? "Logging out..." : "Logout"}
+        </button>
+        <button
+          type="button"
+          className={`theme-switch ${theme === "dark" ? "theme-switch--on" : ""}`}
+          onClick={toggleTheme}
+          aria-label="Toggle dark/light theme"
+          style={{ marginLeft: 0 }}
+        >
+          <span className="theme-switch-knob" />
+        </button>
+      </div>
+    </aside>
   );
 }

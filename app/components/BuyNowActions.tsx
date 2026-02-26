@@ -10,9 +10,17 @@ type BuyNowActionsProps = {
   price: number;
   slug: string;
   image: string;
+  compact?: boolean;
 };
 
-export default function BuyNowActions({ id, name, price, slug, image }: BuyNowActionsProps) {
+export default function BuyNowActions({
+  id,
+  name,
+  price,
+  slug,
+  image,
+  compact = false,
+}: BuyNowActionsProps) {
   const addToCart = useShopStore((state) => state.addToCart);
   const removeFromCart = useShopStore((state) => state.removeFromCart);
   const toggleWishlist = useShopStore((state) => state.toggleWishlist);
@@ -54,7 +62,7 @@ export default function BuyNowActions({ id, name, price, slug, image }: BuyNowAc
 
   return (
     <>
-      <div className="product-actions">
+      <div className={`product-actions${compact ? " product-actions--compact" : ""}`}>
         <QtySelector value={qty} onChange={setQty} />
 
         <button
@@ -95,7 +103,7 @@ export default function BuyNowActions({ id, name, price, slug, image }: BuyNowAc
         </button>
       </div>
 
-      <div className="product-links-row">
+      <div className={`product-links-row${compact ? " product-links-row--compact" : ""}`}>
         <button
           type="button"
           className="product-link-btn"
@@ -103,15 +111,19 @@ export default function BuyNowActions({ id, name, price, slug, image }: BuyNowAc
         >
           {inWishlist ? "Remove Wishlist" : "Save Wishlist"}
         </button>
-        <button type="button" className="product-link-btn">
-          Size Guide
-        </button>
+        {!compact && (
+          <button type="button" className="product-link-btn">
+            Size Guide
+          </button>
+        )}
         <button type="button" className="product-link-btn">
           Delivery & Return
         </button>
-        <button type="button" className="product-link-btn">
-          Ask a Question
-        </button>
+        {!compact && (
+          <button type="button" className="product-link-btn">
+            Ask a Question
+          </button>
+        )}
       </div>
 
       {open && (

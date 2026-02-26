@@ -3,15 +3,34 @@ import mongoose, { Schema, models, model } from "mongoose";
 export interface IProduct extends mongoose.Document {
   name: string;
   slug: string;
+  sku?: string;
   price: number;
+  costPrice: number;
   image: string;
   category: string;
   stock: number;
+  lowStockThreshold: number;
+  variants: Array<{
+    sku: string;
+    name?: string;
+    priceDelta: number;
+    stock: number;
+  }>;
   badge?: string;
   description?: string;
   createdAt: Date;
   updatedAt: Date;
 }
+
+const ProductVariantSchema = new Schema(
+  {
+    sku: { type: String, required: true, trim: true },
+    name: { type: String, trim: true },
+    priceDelta: { type: Number, default: 0 },
+    stock: { type: Number, default: 0, min: 0 },
+  },
+  { _id: false }
+);
 
 const ProductSchema = new Schema<IProduct>(
   {
@@ -22,9 +41,18 @@ const ProductSchema = new Schema<IProduct>(
       unique: true,
       trim: true,
     },
+    sku: {
+      type: String,
+      trim: true,
+    },
     price: {
       type: Number,
       required: true,
+      min: 0,
+    },
+    costPrice: {
+      type: Number,
+      default: 0,
       min: 0,
     },
     image: {
@@ -41,6 +69,15 @@ const ProductSchema = new Schema<IProduct>(
       type: Number,
       default: 0,
       min: 0,
+    },
+    lowStockThreshold: {
+      type: Number,
+      default: 5,
+      min: 0,
+    },
+    variants: {
+      type: [ProductVariantSchema],
+      default: [],
     },
     badge: {
       type: String,

@@ -2,7 +2,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+import InventoryMovement from "@/models/InventoryMovement";
 import { requireAdmin } from "@/lib/routeAuth";
+import { enforceRateLimit, enforceSameOrigin, getClientKey } from "@/lib/security";
+import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -10,28 +13,75 @@ function slugify(value: unknown) {
   return String(value ?? "")
     .trim()
     .toLowerCase()
-    .replace(/['"]/g, "")          // remove quotes
-    .replace(/[^a-z0-9]+/g, "-")   // non-alnum -> hyphen
-    .replace(/^-+|-+$/g, "");      // trim hyphens
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
-// POST /api/products – create new product
+function normalizeVariants(variants: unknown) {
+  if (!Array.isArray(variants)) return [];
+
+  type VariantShape = {
+    sku: string;
+    name: string | undefined;
+    priceDelta: number;
+    stock: number;
+  };
+
+  return variants
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const obj = item as Record<string, unknown>;
+      const sku = String(obj.sku ?? "").trim();
+      if (!sku) return null;
+
+      return {
+        sku,
+        name: String(obj.name ?? "").trim() || undefined,
+        priceDelta: Number(obj.priceDelta ?? 0) || 0,
+        stock: Math.max(0, Number(obj.stock ?? 0) || 0),
+      };
+    })
+    .filter(
+      (value): value is VariantShape => value !== null
+    );
+}
+
+// POST /api/products - create new product
 export async function POST(req: NextRequest) {
   try {
+    const originError = enforceSameOrigin(req);
+    if (originError) return originError;
+
+    const rlError = enforceRateLimit(
+      `product-create:${getClientKey(req)}`,
+      40,
+      60_000
+    );
+    if (rlError) return rlError;
+
     const auth = await requireAdmin();
     if (!auth.ok) return auth.response;
 
     await connectDB();
     const body = await req.json();
 
-    const { name, slug, price, image, category, stock, badge, description } = body;
-
-    // Required fields
-    const requiredFields: Record<string, unknown> = {
+    const {
       name,
+      slug,
+      sku,
       price,
+      costPrice,
       image,
-    };
+      category,
+      stock,
+      lowStockThreshold,
+      variants,
+      badge,
+      description,
+    } = body;
+
+    const requiredFields: Record<string, unknown> = { name, price, image };
 
     for (const [field, value] of Object.entries(requiredFields)) {
       if (value === undefined || value === null || value === "") {
@@ -42,28 +92,46 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Number safety
     const numericPrice = Number(price);
     const numericStock =
-      stock === undefined || stock === null || stock === ""
+      stock === undefined || stock === null || stock === "" ? 0 : Number(stock);
+    const numericCost =
+      costPrice === undefined || costPrice === null || costPrice === ""
         ? 0
-        : Number(stock);
+        : Number(costPrice);
+    const numericLowStock =
+      lowStockThreshold === undefined || lowStockThreshold === null || lowStockThreshold === ""
+        ? 5
+        : Number(lowStockThreshold);
 
-    if (Number.isNaN(numericPrice)) {
+    if (Number.isNaN(numericPrice) || numericPrice < 0) {
       return NextResponse.json(
-        { success: false, message: "price must be a number" },
+        { success: false, message: "price must be a non-negative number" },
         { status: 400 }
       );
     }
 
-    if (Number.isNaN(numericStock)) {
+    if (Number.isNaN(numericStock) || numericStock < 0) {
       return NextResponse.json(
-        { success: false, message: "stock must be a number" },
+        { success: false, message: "stock must be a non-negative number" },
         { status: 400 }
       );
     }
 
-    // ✅ Normalize slug (IMPORTANT)
+    if (Number.isNaN(numericCost) || numericCost < 0) {
+      return NextResponse.json(
+        { success: false, message: "costPrice must be a non-negative number" },
+        { status: 400 }
+      );
+    }
+
+    if (Number.isNaN(numericLowStock) || numericLowStock < 0) {
+      return NextResponse.json(
+        { success: false, message: "lowStockThreshold must be a non-negative number" },
+        { status: 400 }
+      );
+    }
+
     const cleanSlug = slugify(slug ?? name);
     if (!cleanSlug) {
       return NextResponse.json(
@@ -72,7 +140,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ Unique slug check (normalized)
     const existing = await Product.findOne({ slug: cleanSlug }).lean();
     if (existing) {
       return NextResponse.json(
@@ -83,13 +150,37 @@ export async function POST(req: NextRequest) {
 
     const product = await Product.create({
       name: String(name).trim(),
-      slug: cleanSlug, // ✅ always store normalized
+      slug: cleanSlug,
+      sku: String(sku ?? "").trim() || undefined,
       price: numericPrice,
-      image,
-      category,
+      costPrice: numericCost,
+      image: String(image),
+      category: String(category ?? "").trim() || "general",
       stock: numericStock,
+      lowStockThreshold: numericLowStock,
+      variants: normalizeVariants(variants),
       badge,
       description: description ?? "",
+    });
+
+    if (numericStock > 0) {
+      await InventoryMovement.create({
+        productId: product._id,
+        type: "initial",
+        quantity: numericStock,
+        reason: "Initial stock on product creation",
+        createdBy: auth.payload.email,
+      });
+    }
+
+    await logAudit({
+      action: "product.create",
+      actorId: auth.payload.sub,
+      actorEmail: auth.payload.email,
+      actorRole: auth.payload.role,
+      entityType: "Product",
+      entityId: product._id.toString(),
+      message: `Created product ${product.name}`,
     });
 
     return NextResponse.json({ success: true, product }, { status: 201 });
@@ -105,7 +196,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET /api/products – list all products
+// GET /api/products - list all products
 export async function GET() {
   try {
     await connectDB();
