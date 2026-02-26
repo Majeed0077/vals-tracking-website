@@ -3,11 +3,19 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useShopStore } from "@/app/state/useShopStore";
 
 export default function CartPage() {
+  return (
+    <Suspense fallback={null}>
+      <CartPageContent />
+    </Suspense>
+  );
+}
+
+function CartPageContent() {
   type CheckoutPaymentMethod = "cod" | "easypaisa" | "jazzcash";
 
   const searchParams = useSearchParams();
