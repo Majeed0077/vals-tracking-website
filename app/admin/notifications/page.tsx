@@ -26,6 +26,7 @@ function getErrorMessage(err: unknown, fallback: string): string {
 export default function AdminNotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationLog[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showSlowLoadingHint, setShowSlowLoadingHint] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,6 +89,15 @@ export default function AdminNotificationsPage() {
   useEffect(() => {
     loadNotifications();
   }, [loadNotifications]);
+
+  useEffect(() => {
+    if (!loading) {
+      setShowSlowLoadingHint(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowSlowLoadingHint(true), 700);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const sendNotification = useCallback(async () => {
     try {
@@ -228,7 +238,18 @@ export default function AdminNotificationsPage() {
 
           <div className="admin-table-wrapper admin-table-scroll-5">
             {loading && notifications.length === 0 ? (
-              <div className="admin-table-empty">Loading notification logs...</div>
+              <div className="admin-table-empty">
+                {showSlowLoadingHint ? (
+                  <div className="admin-inline-loader" role="status" aria-live="polite">
+                    <div className="admin-inline-loader-ring" aria-hidden="true" />
+                    <div className="admin-inline-loader-dots" aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             ) : (
               <table className="admin-table">
                 <thead>

@@ -30,61 +30,6 @@ type Order = {
   createdAt?: string | Date;
 };
 
-const MOCK_ORDERS: Order[] = [
-  {
-    _id: "mock-order-1001",
-    customer: {
-      name: "Ayesha Khan",
-      email: "ayesha.khan@example.com",
-      phone: "+92 300 1234567",
-    },
-    items: [
-      { name: "Instinct 2 Solar - Tactical Edition", price: 162880, qty: 1 },
-      { name: "eTrex 10", price: 47760, qty: 2 },
-    ],
-    total: 258400,
-    status: "pending",
-    createdAt: new Date("2025-02-14"),
-  },
-  {
-    _id: "mock-order-1002",
-    customer: {
-      name: "Hamza Ali",
-      email: "hamza.ali@example.com",
-    },
-    items: [{ name: "Tread - SxS Edition", price: 463600, qty: 1 }],
-    total: 463600,
-    status: "shipped",
-    createdAt: new Date("2025-02-12"),
-  },
-  {
-    _id: "mock-order-1003",
-    customer: {
-      name: "Sara Noor",
-      email: "sara.noor@example.com",
-      address: "DHA Phase 6, Lahore",
-    },
-    items: [
-      { name: "Garmin Dash Cam Tandem", price: 104080, qty: 1 },
-      { name: "Delta Smart Dog Training Bundle", price: 53840, qty: 1 },
-    ],
-    total: 157920,
-    status: "delivered",
-    createdAt: new Date("2025-02-08"),
-  },
-  {
-    _id: "mock-order-1004",
-    customer: {
-      name: "Bilal Ahmed",
-      email: "bilal.ahmed@example.com",
-    },
-    items: [{ name: "Vivosmart 5", price: 68999, qty: 1 }],
-    total: 68999,
-    status: "cancelled",
-    createdAt: new Date("2025-02-04"),
-  },
-];
-
 function getErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error) return err.message;
   if (typeof err === "string") return err;
@@ -93,7 +38,6 @@ function getErrorMessage(err: unknown, fallback: string): string {
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [mockOrders, setMockOrders] = useState<Order[]>(MOCK_ORDERS);
   const [loading, setLoading] = useState(false);
   const [showSlowLoadingHint, setShowSlowLoadingHint] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -159,19 +103,8 @@ export default function AdminOrdersPage() {
     return () => clearTimeout(timer);
   }, [loading]);
 
-  const usingMockOrders = !loading && orders.length === 0;
-  const displayOrders = usingMockOrders ? mockOrders : orders;
-
   const updateOrderStatus = useCallback(async (id: string, status: OrderStatus) => {
     try {
-      if (usingMockOrders) {
-        setMockOrders((prev) =>
-          prev.map((order) =>
-            order._id === id ? { ...order, status } : order
-          )
-        );
-        return;
-      }
       setUpdatingId(id);
       setError(null);
 
@@ -211,19 +144,10 @@ export default function AdminOrdersPage() {
     } finally {
       setUpdatingId(null);
     }
-  }, [usingMockOrders]);
+  }, []);
 
   const verifyPayment = useCallback(async (id: string) => {
     try {
-      if (usingMockOrders) {
-        setMockOrders((prev) =>
-          prev.map((order) =>
-            order._id === id ? { ...order, paymentStatus: "paid" } : order
-          )
-        );
-        return;
-      }
-
       setVerifyingId(id);
       setError(null);
 
@@ -262,7 +186,7 @@ export default function AdminOrdersPage() {
     } finally {
       setVerifyingId(null);
     }
-  }, [usingMockOrders]);
+  }, []);
 
   return (
     <main className="section-block">
@@ -277,14 +201,14 @@ export default function AdminOrdersPage() {
         {error && <div className="admin-error-banner">{error}</div>}
 
         <OrdersTable
-          orders={displayOrders}
+          orders={orders}
           loading={loading}
           showSlowLoadingHint={showSlowLoadingHint}
           updatingId={updatingId}
           verifyingId={verifyingId}
           onStatusChange={updateOrderStatus}
           onVerifyPayment={verifyPayment}
-          isMock={usingMockOrders}
+          isMock={false}
         />
       </div>
     </main>
@@ -324,7 +248,16 @@ const OrdersTable = memo(function OrdersTable({
       <div className="admin-table-wrapper">
         {loading && orders.length === 0 ? (
           <div className="admin-table-empty">
-            {showSlowLoadingHint ? "Fetching latest orders..." : ""}
+            {showSlowLoadingHint ? (
+              <div className="admin-inline-loader" role="status" aria-live="polite">
+                <div className="admin-inline-loader-ring" aria-hidden="true" />
+                <div className="admin-inline-loader-dots" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : orders.length === 0 ? (
           <table className="admin-table">

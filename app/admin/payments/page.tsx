@@ -52,6 +52,7 @@ export default function AdminPaymentsPage() {
   const [provider, setProvider] = useState<PaymentProvider>("mock");
 
   const [loading, setLoading] = useState(false);
+  const [showSlowLoadingHint, setShowSlowLoadingHint] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -138,6 +139,15 @@ export default function AdminPaymentsPage() {
   useEffect(() => {
     loadTransactions();
   }, [loadTransactions]);
+
+  useEffect(() => {
+    if (!loading) {
+      setShowSlowLoadingHint(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowSlowLoadingHint(true), 700);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const createIntent = useCallback(async () => {
     try {
@@ -328,7 +338,18 @@ export default function AdminPaymentsPage() {
 
           <div className="admin-table-wrapper admin-table-scroll-5">
             {loading && transactions.length === 0 ? (
-              <div className="admin-table-empty">Loading payment transactions...</div>
+              <div className="admin-table-empty">
+                {showSlowLoadingHint ? (
+                  <div className="admin-inline-loader" role="status" aria-live="polite">
+                    <div className="admin-inline-loader-ring" aria-hidden="true" />
+                    <div className="admin-inline-loader-dots" aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             ) : (
               <table className="admin-table">
                 <thead>

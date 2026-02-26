@@ -534,7 +534,16 @@ const ProductTable = memo(function ProductTable({
       <div className="admin-table-wrapper admin-table-scroll-5">
         {loading && products.length === 0 ? (
           <div className="admin-table-empty">
-            {showSlowLoadingHint ? "Fetching latest products..." : ""}
+            {showSlowLoadingHint ? (
+              <div className="admin-inline-loader" role="status" aria-live="polite">
+                <div className="admin-inline-loader-ring" aria-hidden="true" />
+                <div className="admin-inline-loader-dots" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : products.length === 0 ? (
           <table className="admin-table">

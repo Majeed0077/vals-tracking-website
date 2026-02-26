@@ -31,6 +31,7 @@ function getErrorMessage(err: unknown, fallback: string): string {
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showSlowLoadingHint, setShowSlowLoadingHint] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,6 +96,15 @@ export default function AdminCustomersPage() {
   useEffect(() => {
     loadCustomers();
   }, [loadCustomers]);
+
+  useEffect(() => {
+    if (!loading) {
+      setShowSlowLoadingHint(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowSlowLoadingHint(true), 700);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const onSelectCustomer = useCallback((customer: Customer) => {
     setSelected(customer);
@@ -235,7 +245,18 @@ export default function AdminCustomersPage() {
           <section>
             <div className="admin-table-wrapper">
               {loading && customers.length === 0 ? (
-                <div className="admin-table-empty">Loading customers...</div>
+                <div className="admin-table-empty">
+                  {showSlowLoadingHint ? (
+                    <div className="admin-inline-loader" role="status" aria-live="polite">
+                      <div className="admin-inline-loader-ring" aria-hidden="true" />
+                      <div className="admin-inline-loader-dots" aria-hidden="true">
+                        <span />
+                        <span />
+                        <span />
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               ) : (
                 <table className="admin-table">
                   <thead>

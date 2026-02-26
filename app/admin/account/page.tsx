@@ -281,6 +281,20 @@ export default function AdminAccountPage() {
   return (
     <main className="section-block">
       <div className="container">
+        {loading && !email ? (
+          <div className="admin-loading-wrap" style={{ minHeight: "52vh" }}>
+            <div className="admin-loading-card" role="status" aria-live="polite">
+              <div className="admin-loading-ring" aria-hidden="true" />
+              <p className="admin-loading-title">Loading admin account</p>
+              <div className="admin-loading-dots" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
         <div className="admin-header">
           <div className="admin-header-text">
             <h1 className="page-hero-title admin-title">Admin Account</h1>
@@ -423,6 +437,8 @@ export default function AdminAccountPage() {
             </button>
           </div>
         </section>
+          </>
+        )}
       </div>
     </main>
   );
