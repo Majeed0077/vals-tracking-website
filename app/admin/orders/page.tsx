@@ -95,6 +95,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [mockOrders, setMockOrders] = useState<Order[]>(MOCK_ORDERS);
   const [loading, setLoading] = useState(false);
+  const [showSlowLoadingHint, setShowSlowLoadingHint] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -148,6 +149,15 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     loadOrders();
   }, [loadOrders]);
+
+  useEffect(() => {
+    if (!loading) {
+      setShowSlowLoadingHint(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowSlowLoadingHint(true), 700);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const usingMockOrders = !loading && orders.length === 0;
   const displayOrders = usingMockOrders ? mockOrders : orders;
@@ -269,6 +279,7 @@ export default function AdminOrdersPage() {
         <OrdersTable
           orders={displayOrders}
           loading={loading}
+          showSlowLoadingHint={showSlowLoadingHint}
           updatingId={updatingId}
           verifyingId={verifyingId}
           onStatusChange={updateOrderStatus}
@@ -283,6 +294,7 @@ export default function AdminOrdersPage() {
 const OrdersTable = memo(function OrdersTable({
   orders,
   loading,
+  showSlowLoadingHint,
   updatingId,
   verifyingId,
   onStatusChange,
@@ -291,6 +303,7 @@ const OrdersTable = memo(function OrdersTable({
 }: {
   orders: Order[];
   loading: boolean;
+  showSlowLoadingHint: boolean;
   updatingId: string | null;
   verifyingId: string | null;
   onStatusChange: (id: string, status: OrderStatus) => void;
@@ -310,7 +323,9 @@ const OrdersTable = memo(function OrdersTable({
 
       <div className="admin-table-wrapper">
         {loading && orders.length === 0 ? (
-          <div className="admin-table-empty">Loading orders...</div>
+          <div className="admin-table-empty">
+            {showSlowLoadingHint ? "Fetching latest orders..." : ""}
+          </div>
         ) : orders.length === 0 ? (
           <table className="admin-table">
             <tbody>

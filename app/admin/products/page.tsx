@@ -90,6 +90,7 @@ function getErrorMessage(err: unknown, fallback: string): string {
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showSlowLoadingHint, setShowSlowLoadingHint] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -152,6 +153,15 @@ export default function AdminProductsPage() {
   }, [loadProducts]);
 
   useEffect(() => () => clearObjectUrl(), [clearObjectUrl]);
+
+  useEffect(() => {
+    if (!loading) {
+      setShowSlowLoadingHint(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowSlowLoadingHint(true), 700);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const onChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -482,6 +492,7 @@ export default function AdminProductsPage() {
             <ProductTable
               products={products}
               loading={loading}
+              showSlowLoadingHint={showSlowLoadingHint}
               saving={saving}
               totalProducts={products.length}
               onEdit={startEdit}
@@ -497,6 +508,7 @@ export default function AdminProductsPage() {
 const ProductTable = memo(function ProductTable({
   products,
   loading,
+  showSlowLoadingHint,
   saving,
   totalProducts,
   onEdit,
@@ -504,6 +516,7 @@ const ProductTable = memo(function ProductTable({
 }: {
   products: Product[];
   loading: boolean;
+  showSlowLoadingHint: boolean;
   saving: boolean;
   totalProducts: number;
   onEdit: (product: Product) => void;
@@ -520,7 +533,9 @@ const ProductTable = memo(function ProductTable({
 
       <div className="admin-table-wrapper admin-table-scroll-5">
         {loading && products.length === 0 ? (
-          <div className="admin-table-empty">Loading products...</div>
+          <div className="admin-table-empty">
+            {showSlowLoadingHint ? "Fetching latest products..." : ""}
+          </div>
         ) : products.length === 0 ? (
           <table className="admin-table">
             <tbody>
