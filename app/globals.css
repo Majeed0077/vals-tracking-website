@@ -2789,7 +2789,7 @@ html[data-theme="light"] .contact-form--redesign {
 
 
 .store-toolbar {
-  --store-accent: #4f46e5;
+  --store-accent: var(--primary);
   display: grid;
   gap: 18px;
   padding: 22px 22px 24px;
@@ -2895,7 +2895,7 @@ html[data-theme="dark"] .store-title-sub {
 
 .store-search-input:focus {
   border-color: var(--store-accent);
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+  box-shadow: 0 0 0 2px rgba(255, 37, 57, 0.15);
   background: #ffffff;
 }
 
@@ -2911,7 +2911,7 @@ html[data-theme="dark"] .store-search-input::placeholder {
 
 html[data-theme="dark"] .store-search-input:focus {
   background: rgba(15, 23, 42, 0.95);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 0 0 2px rgba(255, 37, 57, 0.25);
 }
 
 .store-select {
@@ -2926,7 +2926,7 @@ html[data-theme="dark"] .store-search-input:focus {
 
 .store-select:focus {
   border-color: var(--store-accent);
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+  box-shadow: 0 0 0 2px rgba(255, 37, 57, 0.15);
 }
 
 html[data-theme="dark"] .store-select {
@@ -2936,7 +2936,7 @@ html[data-theme="dark"] .store-select {
 }
 
 html[data-theme="dark"] .store-select:focus {
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 0 0 2px rgba(255, 37, 57, 0.25);
 }
 
 .store-filter-group {
@@ -2957,9 +2957,9 @@ html[data-theme="dark"] .store-select:focus {
 }
 
 .store-filter-chip.is-active {
-  border-color: rgba(79, 70, 229, 0.4);
-  background: rgba(79, 70, 229, 0.12);
-  color: #1e1b4b;
+  border-color: rgba(255, 37, 57, 0.4);
+  background: rgba(255, 37, 57, 0.12);
+  color: #7f1d1d;
 }
 
 html[data-theme="dark"] .store-filter-chip {
@@ -2969,9 +2969,9 @@ html[data-theme="dark"] .store-filter-chip {
 }
 
 html[data-theme="dark"] .store-filter-chip.is-active {
-  border-color: rgba(99, 102, 241, 0.5);
-  background: rgba(99, 102, 241, 0.18);
-  color: #e0e7ff;
+  border-color: rgba(255, 37, 57, 0.5);
+  background: rgba(255, 37, 57, 0.18);
+  color: #ffd5db;
 }
 
 html[data-theme="light"] .store-title-heading {
@@ -3679,7 +3679,7 @@ html[data-theme="light"] .product-stock {
   width: 68%;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #fb7185, #f97316);
+  background: linear-gradient(90deg, var(--primary-2), var(--primary));
 }
 
 .product-stock-hint {
@@ -4081,7 +4081,7 @@ html[data-theme="dark"] .store-toolbar.store-toolbar-market {
 
 .store-card-market .store-price {
   margin: 0;
-  color: #f97316;
+  color: var(--primary);
   font-size: 1.08rem;
   font-weight: 700;
   display: flex;
@@ -4113,7 +4113,7 @@ html[data-theme="dark"] .store-toolbar.store-toolbar-market {
 
 .store-rating-stars {
   letter-spacing: 0.05em;
-  color: #f59e0b;
+  color: var(--primary);
 }
 
 .store-rating-count {
@@ -4866,7 +4866,7 @@ html[data-theme="light"] .order-status-select {
   justify-content: center;
   font-weight: 700;
   font-size: 0.76rem;
-  background: linear-gradient(135deg, #ef4444, #f97316);
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
   color: #ffffff;
 }
 
@@ -6382,7 +6382,7 @@ html[data-theme="light"] .form-input:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #ef4444, #f97316);
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
   color: #fff;
   font-weight: 700;
 }
