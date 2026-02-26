@@ -4058,10 +4058,29 @@ html[data-theme="dark"] .store-toolbar.store-toolbar-market {
 }
 
 .store-card-market .store-category {
-  margin: 0 0 6px;
-  padding: 3px 9px;
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
+  margin: 0 0 8px;
+  padding: 4px 10px;
+  width: fit-content;
+  max-width: none;
+  justify-content: flex-start;
+  gap: 6px;
+  border-radius: 8px;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  font-weight: 600;
+  color: #334155;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+}
+
+.store-card-market .store-category::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255, 37, 57, 0.16);
 }
 
 .store-card-market .store-title {
@@ -4144,6 +4163,12 @@ html[data-theme="light"] .store-card.store-card-market {
 
 html[data-theme="light"] .store-card-market .store-title {
   color: #0f172a;
+}
+
+html[data-theme="dark"] .store-card-market .store-category {
+  color: rgba(226, 232, 240, 0.95);
+  border-color: rgba(148, 163, 184, 0.45);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.78) 100%);
 }
 
 /* Product detail marketplace layout */
