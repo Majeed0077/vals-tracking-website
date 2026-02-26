@@ -3634,7 +3634,7 @@ html[data-theme="light"] .product-reviews {
 .product-price {
   font-size: 1.7rem;
   font-weight: 700;
-  color: #4f9cf9;
+  color: var(--primary);
   letter-spacing: 0.01em;
 }
 
@@ -4168,19 +4168,19 @@ html[data-theme="light"] .store-card-market .store-title {
 .product-old-price {
   margin: 0;
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: rgba(255, 37, 57, 0.5);
   text-decoration: line-through;
 }
 
 .product-discount-pill {
   margin: 0;
   font-size: 0.82rem;
-  color: #f97316;
+  color: var(--primary);
   font-weight: 700;
 }
 
 html[data-theme="light"] .product-price {
-  color: #f97316;
+  color: var(--primary);
 }
 
 .product-actions {
@@ -4400,7 +4400,7 @@ html[data-theme="dark"] .product-seller-metrics div {
 }
 
 .product-market-shell .product-price {
-  color: #ff2539;
+  color: var(--primary);
   font-size: clamp(1.9rem, 2.9vw, 2.35rem);
   letter-spacing: 0;
 }

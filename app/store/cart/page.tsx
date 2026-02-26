@@ -3,14 +3,33 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useShopStore } from "@/app/state/useShopStore";
 
 export default function CartPage() {
+  const searchParams = useSearchParams();
   const cart = useShopStore((state) => state.cart);
   const updateQty = useShopStore((state) => state.updateQty);
   const removeFromCart = useShopStore((state) => state.removeFromCart);
   const clearCart = useShopStore((state) => state.clearCart);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    note: "",
+  });
+
+  useEffect(() => {
+    if (searchParams.get("checkout") === "1") {
+      setCheckoutOpen(true);
+    }
+  }, [searchParams]);
 
   const total = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
@@ -18,6 +37,86 @@ export default function CartPage() {
 
   const formatPrice = (value: number) =>
     Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+  async function handlePlaceOrder(e: React.FormEvent) {
+    e.preventDefault();
+    setCheckoutError(null);
+    setOrderSuccess(null);
+
+    if (!form.name.trim() || !form.phone.trim() || !form.address.trim()) {
+      setCheckoutError("Name, phone and address are required.");
+      return;
+    }
+    if (cart.length === 0) {
+      setCheckoutError("Your cart is empty.");
+      return;
+    }
+
+    try {
+      setPlacingOrder(true);
+
+      const items = cart.map((item) => ({
+        productId: item.id,
+        name: item.name,
+        qty: item.qty,
+        price: item.price,
+        image: item.image,
+      }));
+
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: {
+            name: form.name.trim(),
+            email: form.email.trim() || undefined,
+            phone: form.phone.trim(),
+            address: form.address.trim(),
+          },
+          items,
+          status: "pending",
+          paymentStatus: "unpaid",
+          shippingCost: 0,
+          note: form.note.trim() || undefined,
+        }),
+      });
+
+      const data: unknown = await res.json();
+      const ok =
+        typeof data === "object" &&
+        data !== null &&
+        "success" in data &&
+        (data as { success: unknown }).success === true;
+
+      if (!res.ok || !ok) {
+        const message =
+          typeof data === "object" &&
+          data !== null &&
+          "message" in data &&
+          typeof (data as { message?: unknown }).message === "string"
+            ? (data as { message: string }).message
+            : "Failed to place order.";
+        throw new Error(message);
+      }
+
+      const orderId =
+        typeof data === "object" &&
+        data !== null &&
+        "order" in data &&
+        typeof (data as { order?: { _id?: unknown } }).order?._id === "string"
+          ? (data as { order: { _id: string } }).order._id
+          : "N/A";
+
+      clearCart();
+      setCheckoutOpen(false);
+      setForm({ name: "", email: "", phone: "", address: "", note: "" });
+      setOrderSuccess(`Order placed successfully. Order ID: ${orderId}`);
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error.message : "Failed to place order.");
+    } finally {
+      setPlacingOrder(false);
+    }
+  }
 
   return (
     <main className="section-block">
@@ -45,6 +144,10 @@ export default function CartPage() {
             </span>
           </Link>
         </div>
+
+        {orderSuccess && (
+          <div className="admin-success-banner">{orderSuccess}</div>
+        )}
 
         {cart.length === 0 ? (
           <div className="store-cart-empty">
@@ -142,7 +245,7 @@ export default function CartPage() {
                     Clear Cart
                   </span>
                 </button>
-                <button type="button" className="btn btn-primary">
+                <button type="button" className="btn btn-primary" onClick={() => setCheckoutOpen(true)}>
                   <span className="btn-icon">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path
@@ -154,11 +257,55 @@ export default function CartPage() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    Checkout (Coming Soon)
+                    Checkout
                   </span>
                 </button>
               </div>
             </div>
+
+            {checkoutOpen && (
+              <section className="admin-form-card" style={{ marginTop: 10 }}>
+                <div className="admin-form-header">
+                  <div>
+                    <h2 className="admin-form-title">Checkout Details</h2>
+                    <p className="admin-form-subtitle">Complete your order information.</p>
+                  </div>
+                </div>
+                {checkoutError && <div className="admin-error-banner">{checkoutError}</div>}
+                <form onSubmit={handlePlaceOrder}>
+                  <div className="admin-form-grid">
+                    <div className="form-field">
+                      <label className="form-label">Name</label>
+                      <input className="form-input" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} required />
+                    </div>
+                    <div className="form-field">
+                      <label className="form-label">Email (optional)</label>
+                      <input className="form-input" type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
+                    </div>
+                    <div className="form-field">
+                      <label className="form-label">Phone</label>
+                      <input className="form-input" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} required />
+                    </div>
+                    <div className="form-field">
+                      <label className="form-label">Address</label>
+                      <input className="form-input" value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} required />
+                    </div>
+                  </div>
+                  <div className="form-field" style={{ marginTop: 8 }}>
+                    <label className="form-label">Note (optional)</label>
+                    <textarea className="form-input" value={form.note} onChange={(e) => setForm((p) => ({ ...p, note: e.target.value }))} />
+                  </div>
+                  <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setCheckoutOpen(false)} disabled={placingOrder}>
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary" disabled={placingOrder}>
+                      {placingOrder ? "Placing Order..." : "Place Order"}
+                    </button>
+                  </div>
+                </form>
+              </section>
+            )}
           </>
         )}
       </div>

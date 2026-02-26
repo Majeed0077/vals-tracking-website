@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import QtySelector from "@/app/components/QtySelector";
 import { useShopStore } from "@/app/state/useShopStore";
 
@@ -21,6 +22,7 @@ export default function BuyNowActions({
   image,
   compact = false,
 }: BuyNowActionsProps) {
+  const router = useRouter();
   const addToCart = useShopStore((state) => state.addToCart);
   const removeFromCart = useShopStore((state) => state.removeFromCart);
   const toggleWishlist = useShopStore((state) => state.toggleWishlist);
@@ -47,7 +49,17 @@ export default function BuyNowActions({
   }, [name, price, qty, slug]);
 
   const handleCheckout = () => {
-    alert("Checkout is coming soon. This is a demo button for now.");
+    addToCart(
+      {
+        id,
+        slug,
+        name,
+        price,
+        image,
+      },
+      qty
+    );
+    router.push("/store/cart?checkout=1");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
