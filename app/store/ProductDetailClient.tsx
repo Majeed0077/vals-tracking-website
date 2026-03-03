@@ -332,6 +332,8 @@ export default function ProductDetailClient({ slug }: ProductDetailClientProps) 
     }
   };
 
+  const visibleReviewRating = hoverRating || reviewRating;
+
   if (loading) {
     return (
       <main className="section-block">
@@ -562,23 +564,33 @@ export default function ProductDetailClient({ slug }: ProductDetailClientProps) 
                   </div>
                   <div className="form-field">
                     <label className="form-label">Rating</label>
-                    <div className="review-stars-input">
-                      {Array.from({ length: 5 }).map((_, index) => {
+	                    <div className="review-stars-input">
+	                      {Array.from({ length: 5 }).map((_, index) => {
                         const value = index + 1;
                         return (
                           <button
                             key={value}
                             type="button"
-                            className={`review-star-btn${reviewRating >= value ? " is-active" : ""}`}
+                            className={`review-star-btn${visibleReviewRating >= value ? " is-active" : ""}`}
                             onClick={() => setReviewRating(value)}
+                            onMouseEnter={() => setHoverRating(value)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            onFocus={() => setHoverRating(value)}
+                            onBlur={() => setHoverRating(0)}
                             aria-label={`Rate ${value} star`}
+                            aria-pressed={reviewRating === value}
                           >
-                            ★
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.8 1-6.1-4.4-4.3 6.1-.9L12 3Z" fill="currentColor" />
+                            </svg>
                           </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+	                        );
+	                      })}
+	                    </div>
+	                    <p className="review-rating-label">
+	                      {hoverRating > 0 ? `${hoverRating} of 5` : `${reviewRating} of 5 selected`}
+	                    </p>
+	                  </div>
                   <div className="form-field">
                     <label className="form-label" htmlFor="review-comment">Comment</label>
                     <textarea

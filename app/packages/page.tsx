@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getPublicSiteContent } from "@/lib/siteContent";
 
 type PackagePlan = {
   tier: "silver" | "gold" | "fleet";
@@ -13,52 +14,15 @@ type PackagePlan = {
   ctaHref: string;
 };
 
-const plans: PackagePlan[] = [
-  {
-    tier: "silver",
-    name: "Silver",
-    subtitle: "Best for small fleets starting digital tracking.",
-    priceLabel: "15,000",
-    period: "/year",
-    coverage: "Up to 25 vehicles",
-    items: ["24/7 Monitoring", "Standard Alerts & Reports", "Trip History & Geo-fence", "Mobile App Access"],
-    ctaLabel: "Start Silver",
-    ctaHref: "/contact",
-  },
-  {
-    tier: "gold",
-    name: "Gold",
-    badge: "Most Popular",
-    subtitle: "Ideal for expanding operations and control rooms.",
-    priceLabel: "20,000",
-    period: "/year",
-    coverage: "Up to 75 vehicles",
-    items: ["Advanced Alerts & Geo-fences", "Driver Behavior Analytics", "Fuel & Utilization Insights", "Priority Support"],
-    ctaLabel: "Start Gold",
-    ctaHref: "/contact",
-  },
-  {
-    tier: "fleet",
-    name: "Fleet",
-    subtitle: "Built for enterprise logistics with custom workflows.",
-    priceLabel: "Custom Pricing",
-    coverage: "100+ vehicles",
-    items: ["Custom SLAs", "API & ERP Integration", "Dedicated Account Manager", "Onboarding & Training"],
-    ctaLabel: "Talk to Sales",
-    ctaHref: "/contact",
-  },
-];
-
-export default function PackagesPage() {
+export default async function PackagesPage() {
+  const content = await getPublicSiteContent();
+  const plans = (content.packages.plans || []) as PackagePlan[];
   return (
     <>
       <section className="page-hero">
         <div className="container">
-          <h1 className="page-hero-title">Packages</h1>
-          <p className="page-hero-subtitle">
-            Simple, transparent pricing. Choose the plan that matches the size and
-            complexity of your fleet.
-          </p>
+          <h1 className="page-hero-title">{content.packages.heroTitle}</h1>
+          <p className="page-hero-subtitle">{content.packages.heroSubtitle}</p>
         </div>
       </section>
 
@@ -66,14 +30,13 @@ export default function PackagesPage() {
         <section className="section-block">
           <div className="container">
             <p className="packages-note packages-note--packages">
-              All plans include access to the web dashboard, mobile apps, alerts,
-              reports and 24/7 support.
+              {content.packages.note}
             </p>
 
             <div className="packages-compare-strip" role="note" aria-label="Package comparison highlights">
-              <span>Installation support included</span>
-              <span>Pakistan-wide command center</span>
-              <span>Monthly performance reports</span>
+              {(content.packages.compare || []).map((item) => (
+                <span key={item}>{item}</span>
+              ))}
             </div>
 
             <div className="packages-grid">

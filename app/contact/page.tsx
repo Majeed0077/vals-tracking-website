@@ -1,12 +1,13 @@
-export default function ContactPage() {
+import { getPublicSiteContent } from "@/lib/siteContent";
+
+export default async function ContactPage() {
+  const content = await getPublicSiteContent();
   return (
     <>
       <section className="page-hero">
         <div className="container">
-          <h1 className="page-hero-title">Contact</h1>
-          <p className="page-hero-subtitle">
-            Get in touch with our team for demos, pricing or technical support.
-          </p>
+          <h1 className="page-hero-title">{content.contact.heroTitle}</h1>
+          <p className="page-hero-subtitle">{content.contact.heroSubtitle}</p>
         </div>
       </section>
 
@@ -14,37 +15,31 @@ export default function ContactPage() {
         <section className="section-block">
           <div className="container contact-grid contact-grid--redesign">
             <div className="contact-info contact-info--redesign">
-              <span className="contact-eyebrow">Talk To Our Team</span>
-              <h2 className="contact-title">Let&apos;s design the right tracking stack for your fleet.</h2>
-              <p className="contact-intro">
-                Share your route volume, fleet size and requirements. We will propose
-                the right plan, deployment model and implementation timeline.
-              </p>
+              <span className="contact-eyebrow">{content.contact.eyebrow}</span>
+              <h2 className="contact-title">{content.contact.title}</h2>
+              <p className="contact-intro">{content.contact.intro}</p>
 
               <div className="contact-info-cards">
                 <div className="contact-info-card">
                   <strong>Phone</strong>
-                  <span>+92 311 101 06 66</span>
-                  <span>+92 311 101 06 66</span>
+                  <span>{content.contact.phone1}</span>
+                  <span>{content.contact.phone2}</span>
                 </div>
                 <div className="contact-info-card">
                   <strong>Email</strong>
-                  <a href="mailto:info@valstracking.com">info@valstracking.com</a>
+                  <a href={`mailto:${content.contact.email}`}>{content.contact.email}</a>
                 </div>
                 <div className="contact-info-card">
                   <strong>Office</strong>
-                  <span>
-                    V4P9+9G3, National Aerospace Science and Technology Park (NASTP),
-                    Faisal Cantonment, Karachi, Sindh.
-                  </span>
+                  <span>{content.contact.office}</span>
                 </div>
               </div>
             </div>
 
             <div className="contact-form contact-form--redesign">
               <div className="contact-form-head">
-                <h3>Request a callback</h3>
-                <p>Typical response within one business day.</p>
+                <h3>{content.contact.formTitle}</h3>
+                <p>{content.contact.formSubtitle}</p>
               </div>
 
               <form>

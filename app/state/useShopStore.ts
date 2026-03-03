@@ -30,9 +30,21 @@ export type FilterState = {
   perPage: number;
 };
 
+type PersistedShopState = {
+  scopeKey?: string;
+  cart?: CartItem[];
+  wishlist?: WishlistItem[];
+  scopedCart?: Record<string, CartItem[]>;
+  scopedWishlist?: Record<string, WishlistItem[]>;
+};
+
 type ShopState = FilterState & {
+  scopeKey: string;
+  scopedCart: Record<string, CartItem[]>;
+  scopedWishlist: Record<string, WishlistItem[]>;
   cart: CartItem[];
   wishlist: WishlistItem[];
+  setScope: (scopeKey: string) => void;
   addToCart: (item: Omit<CartItem, "qty">, qty?: number) => void;
   updateQty: (id: string, qty: number) => void;
   removeFromCart: (id: string) => void;
@@ -59,40 +71,100 @@ export const useShopStore = create<ShopState>()(
   persist(
     (set, get) => ({
       ...DEFAULT_FILTERS,
+      scopeKey: "guest",
+      scopedCart: { guest: [] },
+      scopedWishlist: { guest: [] },
       cart: [],
       wishlist: [],
+      setScope: (scopeKey) => {
+        const normalizedScope = String(scopeKey || "guest").trim() || "guest";
+        set((state) => ({
+          scopeKey: normalizedScope,
+          cart: state.scopedCart[normalizedScope] ?? [],
+          wishlist: state.scopedWishlist[normalizedScope] ?? [],
+        }));
+      },
       addToCart: (item, qty = 1) => {
         set((state) => {
           const existing = state.cart.find((c) => c.id === item.id);
+          const nextCart = existing
+            ? state.cart.map((c) =>
+                c.id === item.id ? { ...c, qty: c.qty + qty } : c
+              )
+            : [...state.cart, { ...item, qty }];
           if (existing) {
             return {
-              cart: state.cart.map((c) =>
-                c.id === item.id ? { ...c, qty: c.qty + qty } : c
-              ),
+              cart: nextCart,
+              scopedCart: {
+                ...state.scopedCart,
+                [state.scopeKey]: nextCart,
+              },
             };
           }
-          return { cart: [...state.cart, { ...item, qty }] };
+          return {
+            cart: nextCart,
+            scopedCart: {
+              ...state.scopedCart,
+              [state.scopeKey]: nextCart,
+            },
+          };
         });
       },
       updateQty: (id, qty) => {
         const nextQty = Math.max(1, Math.floor(qty));
         set((state) => ({
           cart: state.cart.map((c) => (c.id === id ? { ...c, qty: nextQty } : c)),
+          scopedCart: {
+            ...state.scopedCart,
+            [state.scopeKey]: state.cart.map((c) =>
+              c.id === id ? { ...c, qty: nextQty } : c
+            ),
+          },
         }));
       },
       removeFromCart: (id) => {
-        set((state) => ({ cart: state.cart.filter((c) => c.id !== id) }));
+        set((state) => {
+          const nextCart = state.cart.filter((c) => c.id !== id);
+          return {
+            cart: nextCart,
+            scopedCart: {
+              ...state.scopedCart,
+              [state.scopeKey]: nextCart,
+            },
+          };
+        });
       },
       clearCart: () => {
-        set({ cart: [] });
+        set((state) => ({
+          cart: [],
+          scopedCart: {
+            ...state.scopedCart,
+            [state.scopeKey]: [],
+          },
+        }));
       },
       toggleWishlist: (item) => {
         set((state) => {
           const exists = state.wishlist.some((w) => w.slug === item.slug);
+          const nextWishlist = exists
+            ? state.wishlist.filter((w) => w.slug !== item.slug)
+            : [...state.wishlist, item];
           if (exists) {
-            return { wishlist: state.wishlist.filter((w) => w.slug !== item.slug) };
+            return {
+              wishlist: nextWishlist,
+              scopedWishlist: {
+                ...state.scopedWishlist,
+                [state.scopeKey]: nextWishlist,
+              },
+            };
           }
-          return { wishlist: [...state.wishlist, item] };
+          return {
+            wishlist: nextWishlist,
+            scopedWishlist: {
+              ...state.scopedWishlist,
+              [state.scopeKey]: nextWishlist,
+            },
+          };
         });
       },
       isInWishlist: (slug) => {
@@ -119,10 +191,35 @@ export const useShopStore = create<ShopState>()(
     }),
     {
       name: "vals-shop-store",
+      version: 2,
       storage: createJSONStorage(() => localStorage),
+      migrate: (persistedState) => {
+        const state = (persistedState ?? {}) as PersistedShopState;
+        const legacyCart = Array.isArray(state.cart) ? state.cart : [];
+        const legacyWishlist = Array.isArray(state.wishlist) ? state.wishlist : [];
+        const hasScoped =
+          state.scopedCart &&
+          typeof state.scopedCart === "object" &&
+          state.scopedWishlist &&
+          typeof state.scopedWishlist === "object";
+
+        if (hasScoped) return state;
+
+        return {
+          ...DEFAULT_FILTERS,
+          scopeKey: "guest",
+          cart: legacyCart,
+          wishlist: legacyWishlist,
+          scopedCart: { guest: legacyCart },
+          scopedWishlist: { guest: legacyWishlist },
+        };
+      },
       partialize: (state) => ({
+        scopeKey: state.scopeKey,
         cart: state.cart,
         wishlist: state.wishlist,
+        scopedCart: state.scopedCart,
+        scopedWishlist: state.scopedWishlist,
       }),
     }
   )

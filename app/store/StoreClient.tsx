@@ -133,7 +133,7 @@ export default function StoreClient({ products }: StoreClientProps) {
         setCatalogError(null);
 
         const res = await fetch("/api/products", {
-          cache: "force-cache",
+          cache: "no-store",
           signal: controller.signal,
         });
 
@@ -411,7 +411,7 @@ export default function StoreClient({ products }: StoreClientProps) {
                                   strokeLinejoin="round"
                                 />
                               </svg>
-                              {inCart ? "Remove from Cart" : "Add to Cart"}
+                              {inCart ? "Remove" : "Add to Cart"}
                             </span>
                           </button>
                           <button
@@ -440,7 +440,7 @@ export default function StoreClient({ products }: StoreClientProps) {
                                   strokeLinejoin="round"
                                 />
                               </svg>
-                              {inWishlist ? "Remove Wishlist" : "Save Wishlist"}
+                              {inWishlist ? "Saved" : "Save Wishlist"}
                             </span>
                           </button>
                         </div>

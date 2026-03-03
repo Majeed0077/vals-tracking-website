@@ -29,6 +29,7 @@ export interface ISiteSetting extends mongoose.Document {
       responseTime: string;
     };
   };
+  publicContent?: Record<string, unknown>;
   updatedBy?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -63,6 +64,10 @@ const SiteSettingSchema = new Schema<ISiteSetting>(
         shipOnTime: { type: Number, default: 99, min: 0, max: 100 },
         responseTime: { type: String, trim: true, default: "Fast" },
       },
+    },
+    publicContent: {
+      type: Schema.Types.Mixed,
+      default: {},
     },
     updatedBy: { type: String, trim: true },
   },

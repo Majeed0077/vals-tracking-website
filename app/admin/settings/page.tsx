@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 
 type SiteSetting = {
   _id?: string;
+  publicContent?: Record<string, unknown>;
   marketing?: {
     announcementText?: string;
     heroBannerTitle?: string;
@@ -37,16 +38,30 @@ type SiteSetting = {
   updatedAt?: string;
 };
 
+type PublicContentDraft = {
+  home: string;
+  services: string;
+  packages: string;
+  about: string;
+  contact: string;
+  footer: string;
+};
+
 function getErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error) return err.message;
   if (typeof err === "string") return err;
   return fallback;
 }
 
+function formatSection(value: unknown): string {
+  return JSON.stringify(value ?? {}, null, 2);
+}
+
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [websiteContentError, setWebsiteContentError] = useState<string | null>(null);
 
   const [announcementText, setAnnouncementText] = useState("");
   const [heroBannerTitle, setHeroBannerTitle] = useState("");
@@ -70,6 +85,17 @@ export default function AdminSettingsPage() {
   const [responseTime, setResponseTime] = useState("Fast");
 
   const [settingInfo, setSettingInfo] = useState<SiteSetting | null>(null);
+  const [publicContentDraft, setPublicContentDraft] = useState<PublicContentDraft>({
+    home: "{}",
+    services: "{}",
+    packages: "{}",
+    about: "{}",
+    contact: "{}",
+    footer: "{}",
+  });
+  const updatePublicDraft = (key: keyof PublicContentDraft, value: string) => {
+    setPublicContentDraft((prev) => ({ ...prev, [key]: value }));
+  };
 
   const loadSettings = useCallback(async () => {
     try {
@@ -97,7 +123,28 @@ export default function AdminSettingsPage() {
           ? ((data as { setting: SiteSetting }).setting ?? null)
           : null;
 
+      let publicContentSource = setting?.publicContent;
+      if (!publicContentSource || typeof publicContentSource !== "object") {
+        try {
+          const publicRes = await fetch("/api/public/content", { method: "GET", cache: "no-store" });
+          if (publicRes.ok) {
+            const publicData = (await publicRes.json()) as Record<string, unknown>;
+            publicContentSource = publicData;
+          }
+        } catch {
+          // keep empty fallback
+        }
+      }
+
       setSettingInfo(setting);
+      setPublicContentDraft({
+        home: formatSection((publicContentSource as Record<string, unknown> | undefined)?.home),
+        services: formatSection((publicContentSource as Record<string, unknown> | undefined)?.services),
+        packages: formatSection((publicContentSource as Record<string, unknown> | undefined)?.packages),
+        about: formatSection((publicContentSource as Record<string, unknown> | undefined)?.about),
+        contact: formatSection((publicContentSource as Record<string, unknown> | undefined)?.contact),
+        footer: formatSection((publicContentSource as Record<string, unknown> | undefined)?.footer),
+      });
       setAnnouncementText(setting?.marketing?.announcementText || "");
       setHeroBannerTitle(setting?.marketing?.heroBannerTitle || "");
       setHeroBannerSubtitle(setting?.marketing?.heroBannerSubtitle || "");
@@ -132,6 +179,16 @@ export default function AdminSettingsPage() {
     try {
       setSaving(true);
       setError(null);
+      setWebsiteContentError(null);
+
+      const parsedPublicContent = {
+        home: JSON.parse(publicContentDraft.home || "{}") as Record<string, unknown>,
+        services: JSON.parse(publicContentDraft.services || "{}") as Record<string, unknown>,
+        packages: JSON.parse(publicContentDraft.packages || "{}") as Record<string, unknown>,
+        about: JSON.parse(publicContentDraft.about || "{}") as Record<string, unknown>,
+        contact: JSON.parse(publicContentDraft.contact || "{}") as Record<string, unknown>,
+        footer: JSON.parse(publicContentDraft.footer || "{}") as Record<string, unknown>,
+      };
 
       const payload = {
         marketing: {
@@ -164,6 +221,7 @@ export default function AdminSettingsPage() {
             responseTime: responseTime.trim() || "Fast",
           },
         },
+        publicContent: parsedPublicContent,
       };
 
       const res = await fetch("/api/admin/settings", {
@@ -192,11 +250,16 @@ export default function AdminSettingsPage() {
 
       await loadSettings();
     } catch (err: unknown) {
-      setError(getErrorMessage(err, "Unexpected error while saving settings"));
+      const message = getErrorMessage(err, "Unexpected error while saving settings");
+      if (err instanceof SyntaxError || message.toLowerCase().includes("json") || message.toLowerCase().includes("unexpected token")) {
+        setWebsiteContentError("Website content JSON invalid hai. Har section me valid JSON required hai.");
+      } else {
+        setError(message);
+      }
     } finally {
       setSaving(false);
     }
-  }, [announcementText, heroBannerTitle, heroBannerSubtitle, promoEnabled, promoText, metaTitle, metaDescription, metaKeywords, ogImage, deliveryLocation, standardDeliveryFee, collectionPointFee, codLabel, returnPolicy, warrantyLabel, sellerName, sellerRating, shipOnTime, responseTime, loadSettings]);
+  }, [announcementText, heroBannerTitle, heroBannerSubtitle, promoEnabled, promoText, metaTitle, metaDescription, metaKeywords, ogImage, deliveryLocation, standardDeliveryFee, collectionPointFee, codLabel, returnPolicy, warrantyLabel, sellerName, sellerRating, shipOnTime, responseTime, publicContentDraft, loadSettings]);
 
   return (
     <main className="section-block">
@@ -277,6 +340,79 @@ export default function AdminSettingsPage() {
             </div>
             <div className="admin-form-subtitle" style={{ alignSelf: "center" }}>
               Last updated by: {settingInfo?.updatedBy || "-"}
+            </div>
+          </div>
+        </section>
+
+        <section className="admin-form-card" style={{ marginTop: 20 }}>
+          <div className="admin-form-header">
+            <div>
+              <h2 className="admin-form-title">Website Content Editor</h2>
+              <p className="admin-form-subtitle">Home, services, packages, about, contact aur footer ko yahin se dynamic update karein.</p>
+            </div>
+          </div>
+
+          {websiteContentError && <div className="admin-error-banner">{websiteContentError}</div>}
+
+          <div className="admin-form-grid">
+            <div className="form-field" style={{ gridColumn: "1 / -1" }}>
+              <label className="form-label">Home Section JSON</label>
+              <textarea
+                className="form-input"
+                style={{ minHeight: 180, resize: "vertical", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 12 }}
+                value={publicContentDraft.home}
+                onChange={(e) => updatePublicDraft("home", e.target.value)}
+              />
+            </div>
+            <div className="form-field" style={{ gridColumn: "1 / -1" }}>
+              <label className="form-label">Services Section JSON</label>
+              <textarea
+                className="form-input"
+                style={{ minHeight: 180, resize: "vertical", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 12 }}
+                value={publicContentDraft.services}
+                onChange={(e) => updatePublicDraft("services", e.target.value)}
+              />
+            </div>
+            <div className="form-field" style={{ gridColumn: "1 / -1" }}>
+              <label className="form-label">Packages Section JSON</label>
+              <textarea
+                className="form-input"
+                style={{ minHeight: 180, resize: "vertical", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 12 }}
+                value={publicContentDraft.packages}
+                onChange={(e) => updatePublicDraft("packages", e.target.value)}
+              />
+            </div>
+            <div className="form-field" style={{ gridColumn: "1 / -1" }}>
+              <label className="form-label">About Section JSON</label>
+              <textarea
+                className="form-input"
+                style={{ minHeight: 180, resize: "vertical", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 12 }}
+                value={publicContentDraft.about}
+                onChange={(e) => updatePublicDraft("about", e.target.value)}
+              />
+            </div>
+            <div className="form-field" style={{ gridColumn: "1 / -1" }}>
+              <label className="form-label">Contact Section JSON</label>
+              <textarea
+                className="form-input"
+                style={{ minHeight: 180, resize: "vertical", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 12 }}
+                value={publicContentDraft.contact}
+                onChange={(e) => updatePublicDraft("contact", e.target.value)}
+              />
+            </div>
+            <div className="form-field" style={{ gridColumn: "1 / -1" }}>
+              <label className="form-label">Footer Section JSON</label>
+              <textarea
+                className="form-input"
+                style={{ minHeight: 180, resize: "vertical", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 12 }}
+                value={publicContentDraft.footer}
+                onChange={(e) => updatePublicDraft("footer", e.target.value)}
+              />
+            </div>
+            <div>
+              <button className="btn btn-primary" type="button" onClick={saveSettings} disabled={saving || loading}>
+                {saving ? "Saving..." : "Save Website Content"}
+              </button>
             </div>
           </div>
         </section>

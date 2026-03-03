@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getPublicSiteContent } from "@/lib/siteContent";
 
 type ServiceItem = {
   title: string;
@@ -38,61 +39,15 @@ function ServiceIcon({ icon }: { icon: ServiceItem["icon"] }) {
   }
 }
 
-const services: ServiceItem[] = [
-  {
-    title: "Vehicle Tracking",
-    text: "Real-time GPS tracking, trip history and route visibility for every active vehicle.",
-    href: "/services/vehicle-tracking",
-    highlights: ["Live ignition status", "Overspeed alerts"],
-    icon: "vehicle",
-  },
-  {
-    title: "Asset Tracking",
-    text: "Secure high-value assets with compact trackers and movement intelligence.",
-    href: "/services/asset-tracking",
-    highlights: ["Geo-fence zones", "Tamper notifications"],
-    icon: "asset",
-  },
-  {
-    title: "Fleet Management",
-    text: "Centralized command panel for routes, driver behavior and maintenance planning.",
-    href: "/services/fleet-management",
-    highlights: ["Utilization insights", "Driver scorecards"],
-    icon: "fleet",
-  },
-  {
-    title: "Cold Chain Monitoring",
-    text: "Continuous temperature and door-state visibility for reefer vehicles and cold rooms.",
-    href: "/services/cold-chain",
-    highlights: ["Threshold breaches", "Compliance logs"],
-    icon: "cold",
-  },
-  {
-    title: "MDVR & Surveillance",
-    text: "Multi-camera fleet surveillance with playback tools for disputes and incidents.",
-    href: "/services/mdvr",
-    highlights: ["Remote playback", "Event evidence clips"],
-    icon: "mdvr",
-  },
-  {
-    title: "Custom Integrations",
-    text: "Connect with ERP, dispatch and billing systems to keep operations in one flow.",
-    href: "/services/custom-integrations",
-    highlights: ["API-first workflows", "Webhook automations"],
-    icon: "integrations",
-  },
-];
-
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const content = await getPublicSiteContent();
+  const services = (content.services.items || []) as ServiceItem[];
   return (
     <>
       <section className="page-hero">
         <div className="container">
-          <h1 className="page-hero-title">Services</h1>
-          <p className="page-hero-subtitle">
-            End-to-end fleet tracking, management and monitoring solutions designed
-            for transport companies, logistics teams and asset owners.
-          </p>
+          <h1 className="page-hero-title">{content.services.heroTitle}</h1>
+          <p className="page-hero-subtitle">{content.services.heroSubtitle}</p>
         </div>
       </section>
 
@@ -100,10 +55,8 @@ export default function ServicesPage() {
         <section className="section-block">
           <div className="container">
             <div className="services-detail-head">
-              <span className="services-detail-eyebrow">Operations Stack</span>
-              <p className="services-detail-lead">
-                Designed for Pakistani logistics realities: urban congestion, long-haul routes and high-value cargo.
-              </p>
+              <span className="services-detail-eyebrow">{content.services.eyebrow}</span>
+              <p className="services-detail-lead">{content.services.lead}</p>
             </div>
 
             <div className="services-detail-grid">

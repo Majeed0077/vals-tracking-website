@@ -13,38 +13,43 @@ const navItems = [
     href: "/services",
     label: "Services",
     mega: true,
+    intro: "Choose a solution stack tailored for your fleet operations.",
     columns: [
       {
         heading: "TRACKING SOLUTION",
+        description: "Vehicle and asset visibility in real-time",
         links: [
-          { href: "/services/vehicle-tracking", label: "Vehicle Tracking System" },
-          { href: "/services/fleet-management", label: "Fleet Management System" },
-          { href: "/services/cold-chain", label: "Cold Chain Management" },
-          { href: "/services/asset-tracking", label: "Asset Tracking" },
+          { href: "/services/vehicle-tracking", label: "Vehicle Tracking System", icon: "vehicle" },
+          { href: "/services/fleet-management", label: "Fleet Management System", icon: "fleet" },
+          { href: "/services/cold-chain", label: "Cold Chain Management", icon: "cold" },
+          { href: "/services/asset-tracking", label: "Asset Tracking", icon: "asset" },
         ],
       },
       {
         heading: "LIQUID AND SOLID MONITORING SOLUTION",
+        description: "Monitor fuel, gensets and industrial inventory",
         links: [
-          { href: "/services/fuel-monitoring", label: "Vehicle Fuel Monitoring" },
-          { href: "/services/genset-monitoring", label: "Genset Monitoring" },
-          { href: "/services/filling-station", label: "Filling Station Monitoring" },
-          { href: "/services/solid-chemical", label: "Solid Chemical Monitoring" },
+          { href: "/services/fuel-monitoring", label: "Vehicle Fuel Monitoring", icon: "fuel" },
+          { href: "/services/genset-monitoring", label: "Genset Monitoring", icon: "power" },
+          { href: "/services/filling-station", label: "Filling Station Monitoring", icon: "station" },
+          { href: "/services/solid-chemical", label: "Solid Chemical Monitoring", icon: "chemical" },
         ],
       },
       {
         heading: "MDVR & NAVIGATION",
+        description: "Surveillance, dispatch and route command",
         links: [
-          { href: "/services/dash-cam", label: "Dash Cam" },
-          { href: "/services/dispatch", label: "Dispatch Services" },
-          { href: "/services/mdvr", label: "MDVR Solutions" },
+          { href: "/services/dash-cam", label: "Dash Cam", icon: "camera" },
+          { href: "/services/dispatch", label: "Dispatch Services", icon: "dispatch" },
+          { href: "/services/mdvr", label: "MDVR Solutions", icon: "mdvr" },
         ],
       },
       {
         heading: "PERSONNEL TRACKING SOLUTION",
+        description: "Workforce movement and team-level tracking",
         links: [
-          { href: "/services/personal-tracking", label: "Personal Mobile Tracking" },
-          { href: "/services/workforce-management", label: "Mobile Workforce Management" },
+          { href: "/services/personal-tracking", label: "Personal Mobile Tracking", icon: "person" },
+          { href: "/services/workforce-management", label: "Mobile Workforce Management", icon: "team" },
         ],
       },
     ],
@@ -61,6 +66,7 @@ type AuthState = {
   checked: boolean;
   loggedIn: boolean;
   role: UserRole;
+  userId?: string | null;
   email?: string | null;
   name?: string | null;
   avatarUrl?: string | null;
@@ -82,6 +88,7 @@ function normalizeMeResponse(
 ): {
   loggedIn: boolean;
   role: UserRole;
+  userId: string | null;
   email: string | null;
   name: string | null;
   avatarUrl: string | null;
@@ -91,6 +98,7 @@ function normalizeMeResponse(
     return {
       loggedIn: data.loggedIn,
       role: data.role ?? null,
+      userId: data.userId ?? null,
       email: data.email ?? null,
       name: data.user?.name ?? null,
       avatarUrl: data.user?.avatarUrl ?? null,
@@ -102,13 +110,133 @@ function normalizeMeResponse(
     return {
       loggedIn: data.authenticated,
       role: data.user?.role ?? null,
+      userId: null,
       email: null,
       name: null,
       avatarUrl: null,
     };
   }
 
-  return { loggedIn: false, role: null, email: null, name: null, avatarUrl: null };
+  return { loggedIn: false, role: null, userId: null, email: null, name: null, avatarUrl: null };
+}
+
+function MegaBrandIcon({ icon }: { icon?: string }) {
+  const common = {
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+
+  switch (icon) {
+    case "vehicle":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path {...common} d="M3.8 13.2h16.4v4.5H3.8zM6.4 8.2h11.2l2.2 3H4.2l2.2-3z" />
+          <circle {...common} cx="8" cy="17.8" r="1.3" />
+          <circle {...common} cx="16" cy="17.8" r="1.3" />
+          <path {...common} d="M8.8 10.5h6.4" />
+        </svg>
+      );
+    case "fleet":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect {...common} x="3.8" y="4.4" width="8.8" height="5.6" rx="1.2" />
+          <rect {...common} x="14.2" y="4.4" width="6" height="5.6" rx="1.2" />
+          <rect {...common} x="3.8" y="12.2" width="16.4" height="7.4" rx="1.2" />
+          <path {...common} d="M8 15.8h8" />
+        </svg>
+      );
+    case "cold":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path {...common} d="M12 3.2v17.6M4 12h16M6.6 6.6l10.8 10.8M17.4 6.6 6.6 17.4" />
+          <circle {...common} cx="12" cy="12" r="2.4" />
+        </svg>
+      );
+    case "asset":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path {...common} d="m12 3.2 8 4.2v9.2L12 20.8 4 16.6V7.4z" />
+          <path {...common} d="M12 3.2v17.6M20 7.4 12 12 4 7.4" />
+          <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+        </svg>
+      );
+    case "fuel":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect {...common} x="6.2" y="4" width="7.2" height="16" rx="1.1" />
+          <path {...common} d="M13.4 7h3.4l1.8 2.2V16a2 2 0 1 1-4 0v-2.4" />
+          <path {...common} d="M8.2 8.2h3.2" />
+        </svg>
+      );
+    case "power":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path {...common} d="M12 3.4v6.4M16.2 6.4a7 7 0 1 1-8.4 0" />
+          <circle cx="12" cy="13.5" r="1.2" fill="currentColor" />
+        </svg>
+      );
+    case "station":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect {...common} x="5.8" y="4" width="8.2" height="16" rx="1.1" />
+          <path {...common} d="M14 8.2h3l1.2 2v8.1a2 2 0 1 1-4 0V16" />
+          <path {...common} d="M8 8h3.8M8 11h3.8" />
+        </svg>
+      );
+    case "chemical":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path {...common} d="M9 3.5h6M10 3.5v4.8l-4.8 7.7a3.8 3.8 0 0 0 3.2 5.8h7.2a3.8 3.8 0 0 0 3.2-5.8L14 8.3V3.5" />
+          <path {...common} d="M8.2 14h7.6" />
+        </svg>
+      );
+    case "camera":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect {...common} x="3.8" y="8" width="16.4" height="10.2" rx="1.2" />
+          <path {...common} d="M7.2 8 8.4 5.2h7.2L16.8 8" />
+          <circle {...common} cx="12" cy="13.1" r="2.2" />
+        </svg>
+      );
+    case "dispatch":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path {...common} d="M3.5 12h17M8.2 7.3 3.6 12l4.6 4.7m7.6-9.4L20.4 12l-4.6 4.7" />
+          <circle cx="12" cy="12" r="1.1" fill="currentColor" />
+        </svg>
+      );
+    case "mdvr":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect {...common} x="3.8" y="6" width="16.4" height="12" rx="1.2" />
+          <path {...common} d="M7 8.3v7.4M10.7 8.3v7.4M14.4 8.3v7.4M18.1 8.3v7.4" />
+        </svg>
+      );
+    case "person":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle {...common} cx="12" cy="8.2" r="3.5" />
+          <path {...common} d="M5.2 20a6.8 6.8 0 0 1 13.6 0" />
+        </svg>
+      );
+    case "team":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle {...common} cx="8.8" cy="8.5" r="2.8" />
+          <circle {...common} cx="16.8" cy="8.7" r="2.5" />
+          <path {...common} d="M3.2 19.8a5.7 5.7 0 0 1 11.3 0m1.5 0a5.2 5.2 0 0 1 5-4.2" />
+        </svg>
+      );
+    default:
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path {...common} d="M4 12h16M12 4v16" />
+        </svg>
+      );
+  }
 }
 
 export default function Header() {
@@ -119,6 +247,7 @@ export default function Header() {
   const cartCount = useShopStore((state) =>
     state.cart.reduce((sum, item) => sum + item.qty, 0)
   );
+  const setShopScope = useShopStore((state) => state.setScope);
 
   // ---------------- THEME STATE (your existing logic) ----------------
   const [theme, setTheme] = useState<"dark" | "light">("light");
@@ -174,6 +303,7 @@ export default function Header() {
     checked: false,
     loggedIn: false,
     role: null,
+    userId: null,
     email: null,
     name: null,
     avatarUrl: null,
@@ -200,6 +330,7 @@ export default function Header() {
           checked: true,
           loggedIn: !!normalized.loggedIn,
           role: normalized.role ?? null,
+          userId: normalized.userId ?? null,
           email: normalized.email ?? null,
           name: normalized.name ?? null,
           avatarUrl: normalized.avatarUrl ?? null,
@@ -210,6 +341,7 @@ export default function Header() {
           checked: true,
           loggedIn: false,
           role: null,
+          userId: null,
           email: null,
           name: null,
           avatarUrl: null,
@@ -223,6 +355,14 @@ export default function Header() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!auth.checked) return;
+    const scope = auth.loggedIn && auth.role && auth.userId
+      ? `${auth.role}:${auth.userId}`
+      : "guest";
+    setShopScope(scope);
+  }, [auth.checked, auth.loggedIn, auth.role, auth.userId, setShopScope]);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -250,10 +390,12 @@ export default function Header() {
         checked: true,
         loggedIn: false,
         role: null,
+        userId: null,
         email: null,
         name: null,
         avatarUrl: null,
       });
+      setShopScope("guest");
       setProfileMenuOpen(false);
       router.push("/");
       router.refresh();
@@ -304,19 +446,54 @@ export default function Header() {
 
                   {item.mega && (
                     <div className="mega-menu">
-                      <div className="mega-inner">
+                      <div className="mega-shell">
+                        <div className="mega-head">
+                          <div>
+                            <p className="mega-eyebrow">Service Catalog</p>
+                            <h3 className="mega-title">Operations-ready modules for every fleet model</h3>
+                            <p className="mega-intro">{item.intro}</p>
+                          </div>
+                          <Link href="/services" className="mega-view-all">
+                            View all services
+                          </Link>
+                        </div>
+                        <div className="mega-inner">
                         {item.columns?.map((col, index) => (
                           <div key={index} className="mega-col">
                             <h4>{col.heading}</h4>
+                            <p className="mega-col-desc">{col.description}</p>
                             <ul>
                               {col.links.map((link) => (
                                 <li key={link.href}>
-                                  <Link href={link.href}>{link.label}</Link>
+                                  <Link href={link.href} className="mega-link-card">
+                                    <span className="mega-link-icon" aria-hidden="true">
+                                      <MegaBrandIcon icon={link.icon} />
+                                    </span>
+                                    <span className="mega-link-text">{link.label}</span>
+                                  </Link>
                                 </li>
                               ))}
                             </ul>
                           </div>
                         ))}
+                        </div>
+                        <div className="mega-foot">
+                          <div className="mega-foot-stat">
+                            <strong>24/7</strong>
+                            <span>Monitoring Support</span>
+                          </div>
+                          <div className="mega-foot-stat">
+                            <strong>5000+</strong>
+                            <span>Active Devices</span>
+                          </div>
+                          <div className="mega-foot-stat">
+                            <strong>45+</strong>
+                            <span>Cities Covered</span>
+                          </div>
+                          <Link href="/contact" className="mega-consult-btn">
+                            Book Consultation
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   )}
