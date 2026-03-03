@@ -22,6 +22,29 @@ type ProductShape = {
   badge?: string;
   category?: string;
   stock?: number;
+  avgRating?: number;
+  reviewCount?: number;
+};
+
+type ProductReview = {
+  _id: string;
+  name: string;
+  rating: number;
+  comment: string;
+  createdAt?: string;
+};
+
+type ProductDetailConfig = {
+  deliveryLocation: string;
+  standardDeliveryFee: number;
+  collectionPointFee: number;
+  codLabel: string;
+  returnPolicy: string;
+  warrantyLabel: string;
+  sellerName: string;
+  sellerRating: number;
+  shipOnTime: number;
+  responseTime: string;
 };
 
 type ProductDetailClientProps = {
@@ -74,6 +97,27 @@ function normalizeProduct(value: unknown): ProductShape | null {
 export default function ProductDetailClient({ slug }: ProductDetailClientProps) {
   const [product, setProduct] = useState<ProductShape | null>(null);
   const [newProducts, setNewProducts] = useState<ProductShape[]>([]);
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewName, setReviewName] = useState("");
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [reviewSuccess, setReviewSuccess] = useState<string | null>(null);
+  const [ratingStats, setRatingStats] = useState({ avgRating: 0, reviewCount: 0 });
+  const [productConfig, setProductConfig] = useState<ProductDetailConfig>({
+    deliveryLocation: "Sindh, Karachi",
+    standardDeliveryFee: 140,
+    collectionPointFee: 30,
+    codLabel: "Available",
+    returnPolicy: "14 days easy return",
+    warrantyLabel: "12 months",
+    sellerName: "VALS Official Store",
+    sellerRating: 93,
+    shipOnTime: 99,
+    responseTime: "Fast",
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -115,7 +159,53 @@ export default function ProductDetailClient({ slug }: ProductDetailClientProps) 
           throw new Error("Invalid product payload");
         }
 
-        setProduct(detailProduct);
+        const stats =
+          typeof detailData === "object" &&
+          detailData !== null &&
+          "reviewStats" in detailData &&
+          typeof (detailData as { reviewStats?: unknown }).reviewStats === "object"
+            ? ((detailData as { reviewStats: { avgRating?: number; reviewCount?: number } }).reviewStats ?? {})
+            : {};
+        setRatingStats({
+          avgRating: Number(stats.avgRating ?? 0) || 0,
+          reviewCount: Number(stats.reviewCount ?? 0) || 0,
+        });
+
+        const config =
+          typeof detailData === "object" &&
+          detailData !== null &&
+          "productDetailConfig" in detailData &&
+          typeof (detailData as { productDetailConfig?: unknown }).productDetailConfig === "object"
+            ? ((detailData as { productDetailConfig: Partial<ProductDetailConfig> }).productDetailConfig ?? {})
+            : {};
+        setProductConfig((prev) => ({ ...prev, ...config }));
+
+        setProduct({
+          ...detailProduct,
+          avgRating: Number(stats.avgRating ?? 0) || 0,
+          reviewCount: Number(stats.reviewCount ?? 0) || 0,
+        });
+
+        const reviewsRes = await fetch(`/api/products/${encodeURIComponent(normalizedSlug)}/reviews`, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        const reviewsData: unknown = await reviewsRes.json();
+        const reviewsOk =
+          typeof reviewsData === "object" &&
+          reviewsData !== null &&
+          "success" in reviewsData &&
+          (reviewsData as { success: unknown }).success === true;
+        if (reviewsRes.ok && reviewsOk) {
+          const list =
+            typeof reviewsData === "object" &&
+            reviewsData !== null &&
+            "reviews" in reviewsData &&
+            Array.isArray((reviewsData as { reviews?: unknown }).reviews)
+              ? (reviewsData as { reviews: ProductReview[] }).reviews
+              : [];
+          setReviews(list);
+        }
 
         // Load related row items in background without blocking detail render.
         const listRes = await fetch("/api/products", {
@@ -177,6 +267,70 @@ export default function ProductDetailClient({ slug }: ProductDetailClientProps) 
         : null,
     [product]
   );
+
+  const submitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product) return;
+
+    try {
+      setReviewSubmitting(true);
+      setReviewError(null);
+      setReviewSuccess(null);
+
+      const res = await fetch(`/api/products/${encodeURIComponent(product.slug)}/reviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: reviewName.trim(),
+          rating: reviewRating,
+          comment: reviewComment.trim(),
+        }),
+      });
+      const data: unknown = await res.json();
+      const ok =
+        typeof data === "object" &&
+        data !== null &&
+        "success" in data &&
+        (data as { success: unknown }).success === true;
+
+      if (!res.ok || !ok) {
+        const msg =
+          typeof data === "object" &&
+          data !== null &&
+          "message" in data &&
+          typeof (data as { message?: unknown }).message === "string"
+            ? (data as { message: string }).message
+            : "Failed to submit review";
+        throw new Error(msg);
+      }
+
+      const review =
+        typeof data === "object" &&
+        data !== null &&
+        "review" in data &&
+        typeof (data as { review?: unknown }).review === "object"
+          ? ((data as { review: ProductReview }).review ?? null)
+          : null;
+
+      if (review) {
+        setReviews((prev) => [review, ...prev]);
+        setRatingStats((prev) => {
+          const nextCount = prev.reviewCount + 1;
+          const nextAvg = ((prev.avgRating * prev.reviewCount) + review.rating) / nextCount;
+          return { avgRating: Number(nextAvg.toFixed(1)), reviewCount: nextCount };
+        });
+      }
+
+      setReviewName("");
+      setReviewComment("");
+      setReviewRating(5);
+      setReviewSuccess("Review submitted successfully.");
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : "Failed to submit review");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -285,12 +439,16 @@ export default function ProductDetailClient({ slug }: ProductDetailClientProps) 
                   <div className="product-rating-row">
                     <span className="product-stars" aria-hidden="true">
                       {Array.from({ length: 5 }).map((_, index) => (
-                        <svg key={index} viewBox="0 0 24 24">
+                        <svg key={index} viewBox="0 0 24 24" style={{ opacity: index < Math.round(ratingStats.avgRating || 0) ? 1 : 0.3 }}>
                           <path d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.8 1-6.1-4.4-4.3 6.1-.9L12 3Z" fill="currentColor" />
                         </svg>
                       ))}
                     </span>
-                    <span className="product-reviews">(1 customer review)</span>
+                    <span className="product-reviews">
+                      {ratingStats.reviewCount > 0
+                        ? `${ratingStats.avgRating.toFixed(1)} (${ratingStats.reviewCount} review${ratingStats.reviewCount > 1 ? "s" : ""})`
+                        : "No reviews yet"}
+                    </span>
                   </div>
                 </div>
 
@@ -352,29 +510,117 @@ export default function ProductDetailClient({ slug }: ProductDetailClientProps) 
               <aside className="product-side-column">
                 <section className="product-side-card">
                   <h3>Delivery Options</h3>
-                  <div className="product-side-row"><span>Location</span><strong>Sindh, Karachi</strong></div>
-                  <div className="product-side-row"><span>Standard Delivery</span><strong>Rs 140</strong></div>
-                  <div className="product-side-row"><span>Collection Point</span><strong>Rs 30</strong></div>
-                  <div className="product-side-row"><span>Cash on Delivery</span><strong>Available</strong></div>
+                  <div className="product-side-row"><span>Location</span><strong>{productConfig.deliveryLocation}</strong></div>
+                  <div className="product-side-row"><span>Standard Delivery</span><strong>Rs {Number(productConfig.standardDeliveryFee || 0).toLocaleString()}</strong></div>
+                  <div className="product-side-row"><span>Collection Point</span><strong>Rs {Number(productConfig.collectionPointFee || 0).toLocaleString()}</strong></div>
+                  <div className="product-side-row"><span>Cash on Delivery</span><strong>{productConfig.codLabel}</strong></div>
                 </section>
 
                 <section className="product-side-card">
                   <h3>Return & Warranty</h3>
-                  <div className="product-side-row"><span>Return</span><strong>14 days easy return</strong></div>
-                  <div className="product-side-row"><span>Warranty</span><strong>12 months</strong></div>
+                  <div className="product-side-row"><span>Return</span><strong>{productConfig.returnPolicy}</strong></div>
+                  <div className="product-side-row"><span>Warranty</span><strong>{productConfig.warrantyLabel}</strong></div>
                 </section>
 
                 <section className="product-side-card">
                   <h3>Sold by</h3>
-                  <p className="product-side-seller">VALS Official Store</p>
+                  <p className="product-side-seller">{productConfig.sellerName}</p>
                   <div className="product-seller-metrics">
-                    <div><span>Seller Rating</span><strong>93%</strong></div>
-                    <div><span>Ship On Time</span><strong>99%</strong></div>
-                    <div><span>Response Time</span><strong>Fast</strong></div>
+                    <div><span>Seller Rating</span><strong>{Number(productConfig.sellerRating || 0)}%</strong></div>
+                    <div><span>Ship On Time</span><strong>{Number(productConfig.shipOnTime || 0)}%</strong></div>
+                    <div><span>Response Time</span><strong>{productConfig.responseTime}</strong></div>
                   </div>
                 </section>
               </aside>
             </div>
+          </div>
+        </section>
+
+        <section className="section-block" style={{ paddingTop: 0 }}>
+          <div className="container">
+            <section className="product-review-card">
+              <div className="product-review-header">
+                <h2>Customer Reviews</h2>
+                <p>
+                  {ratingStats.reviewCount > 0
+                    ? `${ratingStats.avgRating.toFixed(1)} average from ${ratingStats.reviewCount} review${ratingStats.reviewCount > 1 ? "s" : ""}`
+                    : "Be the first customer to review this product."}
+                </p>
+              </div>
+
+              <div className="product-review-grid">
+                <form className="product-review-form" onSubmit={submitReview}>
+                  <div className="form-field">
+                    <label className="form-label" htmlFor="review-name">Your Name</label>
+                    <input
+                      id="review-name"
+                      className="form-input"
+                      value={reviewName}
+                      onChange={(e) => setReviewName(e.target.value)}
+                      placeholder="Optional if logged in"
+                    />
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label">Rating</label>
+                    <div className="review-stars-input">
+                      {Array.from({ length: 5 }).map((_, index) => {
+                        const value = index + 1;
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            className={`review-star-btn${reviewRating >= value ? " is-active" : ""}`}
+                            onClick={() => setReviewRating(value)}
+                            aria-label={`Rate ${value} star`}
+                          >
+                            ★
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label" htmlFor="review-comment">Comment</label>
+                    <textarea
+                      id="review-comment"
+                      className="form-input"
+                      style={{ minHeight: 96, resize: "vertical" }}
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      required
+                    />
+                  </div>
+                  {reviewError && <p className="buy-modal-error" style={{ marginBottom: 0 }}>{reviewError}</p>}
+                  {reviewSuccess && <p className="buy-modal-success-title" style={{ fontSize: "0.86rem", marginBottom: 0 }}>{reviewSuccess}</p>}
+                  <div>
+                    <button type="submit" className="btn btn-primary" disabled={reviewSubmitting}>
+                      {reviewSubmitting ? "Submitting..." : "Submit Review"}
+                    </button>
+                  </div>
+                </form>
+
+                <div className="product-review-list">
+                  {reviews.length === 0 ? (
+                    <p className="product-row-empty">No comments yet.</p>
+                  ) : (
+                    reviews.map((review) => (
+                      <article key={review._id} className="product-review-item">
+                        <div className="product-review-item-head">
+                          <strong>{review.name}</strong>
+                          <span>{review.createdAt ? new Date(review.createdAt).toLocaleDateString() : "-"}</span>
+                        </div>
+                        <div className="product-review-item-stars">
+                          {Array.from({ length: 5 }).map((_, index) => (
+                            <span key={index} style={{ opacity: index < review.rating ? 1 : 0.3 }}>★</span>
+                          ))}
+                        </div>
+                        <p>{review.comment}</p>
+                      </article>
+                    ))
+                  )}
+                </div>
+              </div>
+            </section>
           </div>
         </section>
       </main>

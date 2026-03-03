@@ -6,6 +6,8 @@ export type StoreProduct = {
   slug: string;
   image: string;
   price: number;
+  avgRating?: number;
+  reviewCount?: number;
   discount?: {
     type: "percentage" | "fixed";
     value: number;

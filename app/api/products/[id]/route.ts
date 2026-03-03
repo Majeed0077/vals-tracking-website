@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import InventoryMovement from "@/models/InventoryMovement";
+import ProductReview from "@/models/ProductReview";
+import SiteSetting from "@/models/SiteSetting";
 import { requireAdmin } from "@/lib/routeAuth";
 import { enforceRateLimit, enforceSameOrigin, getClientKey } from "@/lib/security";
 import { logAudit } from "@/lib/audit";
@@ -26,6 +28,21 @@ function slugify(value: unknown) {
 
 function escapeRegex(input: string) {
   return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getDefaultProductDetailConfig() {
+  return {
+    deliveryLocation: "Sindh, Karachi",
+    standardDeliveryFee: 140,
+    collectionPointFee: 30,
+    codLabel: "Available",
+    returnPolicy: "14 days easy return",
+    warrantyLabel: "12 months",
+    sellerName: "VALS Official Store",
+    sellerRating: 93,
+    shipOnTime: 99,
+    responseTime: "Fast",
+  };
 }
 
 function normalizeVariants(variants: unknown) {
@@ -135,7 +152,47 @@ export async function GET(_req: NextRequest, context: RouteContext) {
       );
     }
 
-    return NextResponse.json({ success: true, product }, { status: 200 });
+    const [statsAgg, setting] = await Promise.all([
+      ProductReview.aggregate<{ _id: mongoose.Types.ObjectId; avgRating: number; reviewCount: number }>([
+        { $match: { productId: product._id, isApproved: true } },
+        {
+          $group: {
+            _id: "$productId",
+            avgRating: { $avg: "$rating" },
+            reviewCount: { $sum: 1 },
+          },
+        },
+      ]),
+      SiteSetting.findOneAndUpdate(
+        { key: "global" },
+        { $setOnInsert: { key: "global" } },
+        { new: true, upsert: true }
+      )
+        .select("commerce.productDetail")
+        .lean(),
+    ]);
+
+    const statsTop = statsAgg[0];
+    const defaultConfig = getDefaultProductDetailConfig();
+    const configFromDb =
+      (setting as { commerce?: { productDetail?: Partial<typeof defaultConfig> } } | null)?.commerce
+        ?.productDetail || {};
+
+    return NextResponse.json(
+      {
+        success: true,
+        product,
+        reviewStats: {
+          avgRating: statsTop ? Number(statsTop.avgRating.toFixed(1)) : 0,
+          reviewCount: statsTop ? statsTop.reviewCount : 0,
+        },
+        productDetailConfig: {
+          ...defaultConfig,
+          ...configFromDb,
+        },
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("GET /api/products/[id] error:", error);
 

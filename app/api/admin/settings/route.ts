@@ -54,6 +54,9 @@ export async function PUT(req: NextRequest) {
     if (body.seo && typeof body.seo === "object") {
       update.seo = body.seo;
     }
+    if (body.commerce && typeof body.commerce === "object") {
+      update.commerce = body.commerce;
+    }
 
     const setting = await SiteSetting.findOneAndUpdate(
       { key: "global" },

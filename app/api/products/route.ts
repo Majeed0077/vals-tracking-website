@@ -1,8 +1,10 @@
 // app/api/products/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import InventoryMovement from "@/models/InventoryMovement";
+import ProductReview from "@/models/ProductReview";
 import { requireAdmin } from "@/lib/routeAuth";
 import { enforceRateLimit, enforceSameOrigin, getClientKey } from "@/lib/security";
 import { logAudit } from "@/lib/audit";
@@ -258,7 +260,34 @@ export async function GET() {
   try {
     await connectDB();
     const products = await Product.find().sort({ createdAt: -1 }).lean();
-    return NextResponse.json({ success: true, products });
+
+    const productIds = products.map((item) => item._id).filter(Boolean);
+    const reviewStats = productIds.length
+      ? await ProductReview.aggregate<{ _id: mongoose.Types.ObjectId; avgRating: number; reviewCount: number }>([
+          { $match: { productId: { $in: productIds }, isApproved: true } },
+          {
+            $group: {
+              _id: "$productId",
+              avgRating: { $avg: "$rating" },
+              reviewCount: { $sum: 1 },
+            },
+          },
+        ])
+      : [];
+
+    const statsMap = new Map(
+      reviewStats.map((row) => [
+        String(row._id),
+        { avgRating: Number(row.avgRating.toFixed(1)), reviewCount: row.reviewCount },
+      ])
+    );
+
+    const enriched = products.map((product) => ({
+      ...product,
+      avgRating: statsMap.get(String(product._id))?.avgRating ?? 0,
+      reviewCount: statsMap.get(String(product._id))?.reviewCount ?? 0,
+    }));
+    return NextResponse.json({ success: true, products: enriched });
   } catch (error) {
     console.error("GET /api/products error:", error);
     return NextResponse.json(

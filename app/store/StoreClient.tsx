@@ -26,6 +26,8 @@ type ApiProduct = {
   };
   badge?: string;
   category?: string;
+  avgRating?: number;
+  reviewCount?: number;
 };
 
 const CATEGORY_OPTIONS = [
@@ -42,18 +44,6 @@ const SORT_OPTIONS = [
   { label: "Name: A-Z", value: "name-asc" },
   { label: "Name: Z-A", value: "name-desc" },
 ] as const;
-
-function getProductMeta(product: StoreProduct) {
-  const seed = product.slug
-    .split("")
-    .reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
-  const rating = 3.8 + ((seed % 12) / 10); // 3.8 - 4.9
-  const ratingCount = 10 + (seed % 320);
-  return {
-    rating: Math.min(5, Number(rating.toFixed(1))),
-    ratingCount,
-  };
-}
 
 function normalizeApiProduct(value: unknown): StoreProduct | null {
   if (!value || typeof value !== "object") return null;
@@ -94,6 +84,8 @@ function normalizeApiProduct(value: unknown): StoreProduct | null {
         : undefined,
     badge: typeof obj.badge === "string" ? obj.badge : undefined,
     category: typeof obj.category === "string" ? obj.category : undefined,
+    avgRating: Number(obj.avgRating ?? 0) || 0,
+    reviewCount: Number(obj.reviewCount ?? 0) || 0,
   };
 }
 
@@ -499,7 +491,9 @@ function StorePriceAndRating({
   product: StoreProduct;
   formatPrice: (value: number) => string;
 }) {
-  const meta = getProductMeta(product);
+  const avgRating = Number(product.avgRating ?? 0);
+  const reviewCount = Number(product.reviewCount ?? 0);
+  const filledStars = Math.max(0, Math.min(5, Math.round(avgRating)));
   const pricing = resolveProductPricing({
     price: product.price,
     discount: product.discount,
@@ -517,8 +511,16 @@ function StorePriceAndRating({
         )}
       </p>
       <p className="store-rating-line">
-        <span className="store-rating-stars">{"★".repeat(5)}</span>
-        <span className="store-rating-count">({meta.ratingCount})</span>
+        <span className="store-rating-stars">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <svg key={index} viewBox="0 0 24 24" aria-hidden="true" style={{ width: 14, height: 14, opacity: index < filledStars ? 1 : 0.3 }}>
+              <path d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.8 1-6.1-4.4-4.3 6.1-.9L12 3Z" fill="currentColor" />
+            </svg>
+          ))}
+        </span>
+        <span className="store-rating-count">
+          {reviewCount > 0 ? `${avgRating.toFixed(1)} (${reviewCount})` : "No reviews yet"}
+        </span>
       </p>
     </div>
   );

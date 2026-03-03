@@ -15,6 +15,20 @@ export interface ISiteSetting extends mongoose.Document {
     metaKeywords?: string[];
     ogImage?: string;
   };
+  commerce: {
+    productDetail: {
+      deliveryLocation: string;
+      standardDeliveryFee: number;
+      collectionPointFee: number;
+      codLabel: string;
+      returnPolicy: string;
+      warrantyLabel: string;
+      sellerName: string;
+      sellerRating: number;
+      shipOnTime: number;
+      responseTime: string;
+    };
+  };
   updatedBy?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +49,20 @@ const SiteSettingSchema = new Schema<ISiteSetting>(
       metaDescription: { type: String, trim: true },
       metaKeywords: { type: [String], default: [] },
       ogImage: { type: String, trim: true },
+    },
+    commerce: {
+      productDetail: {
+        deliveryLocation: { type: String, trim: true, default: "Sindh, Karachi" },
+        standardDeliveryFee: { type: Number, default: 140, min: 0 },
+        collectionPointFee: { type: Number, default: 30, min: 0 },
+        codLabel: { type: String, trim: true, default: "Available" },
+        returnPolicy: { type: String, trim: true, default: "14 days easy return" },
+        warrantyLabel: { type: String, trim: true, default: "12 months" },
+        sellerName: { type: String, trim: true, default: "VALS Official Store" },
+        sellerRating: { type: Number, default: 93, min: 0, max: 100 },
+        shipOnTime: { type: Number, default: 99, min: 0, max: 100 },
+        responseTime: { type: String, trim: true, default: "Fast" },
+      },
     },
     updatedBy: { type: String, trim: true },
   },

@@ -19,6 +19,20 @@ type SiteSetting = {
     metaKeywords?: string[];
     ogImage?: string;
   };
+  commerce?: {
+    productDetail?: {
+      deliveryLocation?: string;
+      standardDeliveryFee?: number;
+      collectionPointFee?: number;
+      codLabel?: string;
+      returnPolicy?: string;
+      warrantyLabel?: string;
+      sellerName?: string;
+      sellerRating?: number;
+      shipOnTime?: number;
+      responseTime?: string;
+    };
+  };
   updatedBy?: string;
   updatedAt?: string;
 };
@@ -44,6 +58,16 @@ export default function AdminSettingsPage() {
   const [metaDescription, setMetaDescription] = useState("");
   const [metaKeywords, setMetaKeywords] = useState("");
   const [ogImage, setOgImage] = useState("");
+  const [deliveryLocation, setDeliveryLocation] = useState("Sindh, Karachi");
+  const [standardDeliveryFee, setStandardDeliveryFee] = useState("140");
+  const [collectionPointFee, setCollectionPointFee] = useState("30");
+  const [codLabel, setCodLabel] = useState("Available");
+  const [returnPolicy, setReturnPolicy] = useState("14 days easy return");
+  const [warrantyLabel, setWarrantyLabel] = useState("12 months");
+  const [sellerName, setSellerName] = useState("VALS Official Store");
+  const [sellerRating, setSellerRating] = useState("93");
+  const [shipOnTime, setShipOnTime] = useState("99");
+  const [responseTime, setResponseTime] = useState("Fast");
 
   const [settingInfo, setSettingInfo] = useState<SiteSetting | null>(null);
 
@@ -83,6 +107,16 @@ export default function AdminSettingsPage() {
       setMetaDescription(setting?.seo?.metaDescription || "");
       setMetaKeywords((setting?.seo?.metaKeywords || []).join(", "));
       setOgImage(setting?.seo?.ogImage || "");
+      setDeliveryLocation(setting?.commerce?.productDetail?.deliveryLocation || "Sindh, Karachi");
+      setStandardDeliveryFee(String(setting?.commerce?.productDetail?.standardDeliveryFee ?? 140));
+      setCollectionPointFee(String(setting?.commerce?.productDetail?.collectionPointFee ?? 30));
+      setCodLabel(setting?.commerce?.productDetail?.codLabel || "Available");
+      setReturnPolicy(setting?.commerce?.productDetail?.returnPolicy || "14 days easy return");
+      setWarrantyLabel(setting?.commerce?.productDetail?.warrantyLabel || "12 months");
+      setSellerName(setting?.commerce?.productDetail?.sellerName || "VALS Official Store");
+      setSellerRating(String(setting?.commerce?.productDetail?.sellerRating ?? 93));
+      setShipOnTime(String(setting?.commerce?.productDetail?.shipOnTime ?? 99));
+      setResponseTime(setting?.commerce?.productDetail?.responseTime || "Fast");
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Unexpected error while loading settings"));
     } finally {
@@ -116,6 +150,20 @@ export default function AdminSettingsPage() {
             .filter(Boolean),
           ogImage: ogImage.trim() || undefined,
         },
+        commerce: {
+          productDetail: {
+            deliveryLocation: deliveryLocation.trim() || "Sindh, Karachi",
+            standardDeliveryFee: Math.max(0, Number(standardDeliveryFee || 0)),
+            collectionPointFee: Math.max(0, Number(collectionPointFee || 0)),
+            codLabel: codLabel.trim() || "Available",
+            returnPolicy: returnPolicy.trim() || "14 days easy return",
+            warrantyLabel: warrantyLabel.trim() || "12 months",
+            sellerName: sellerName.trim() || "VALS Official Store",
+            sellerRating: Math.max(0, Math.min(100, Number(sellerRating || 0))),
+            shipOnTime: Math.max(0, Math.min(100, Number(shipOnTime || 0))),
+            responseTime: responseTime.trim() || "Fast",
+          },
+        },
       };
 
       const res = await fetch("/api/admin/settings", {
@@ -148,7 +196,7 @@ export default function AdminSettingsPage() {
     } finally {
       setSaving(false);
     }
-  }, [announcementText, heroBannerTitle, heroBannerSubtitle, promoEnabled, promoText, metaTitle, metaDescription, metaKeywords, ogImage, loadSettings]);
+  }, [announcementText, heroBannerTitle, heroBannerSubtitle, promoEnabled, promoText, metaTitle, metaDescription, metaKeywords, ogImage, deliveryLocation, standardDeliveryFee, collectionPointFee, codLabel, returnPolicy, warrantyLabel, sellerName, sellerRating, shipOnTime, responseTime, loadSettings]);
 
   return (
     <main className="section-block">
@@ -229,6 +277,57 @@ export default function AdminSettingsPage() {
             </div>
             <div className="admin-form-subtitle" style={{ alignSelf: "center" }}>
               Last updated by: {settingInfo?.updatedBy || "-"}
+            </div>
+          </div>
+        </section>
+
+        <section className="admin-form-card" style={{ marginTop: 20 }}>
+          <div className="admin-form-header">
+            <div>
+              <h2 className="admin-form-title">Store Product Detail Blocks</h2>
+              <p className="admin-form-subtitle">Dynamic data for delivery, return and seller cards on product detail page.</p>
+            </div>
+          </div>
+          <div className="admin-form-grid">
+            <div className="form-field">
+              <label className="form-label">Delivery Location</label>
+              <input className="form-input" value={deliveryLocation} onChange={(e) => setDeliveryLocation(e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">Standard Delivery Fee</label>
+              <input className="form-input" type="number" min={0} value={standardDeliveryFee} onChange={(e) => setStandardDeliveryFee(e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">Collection Point Fee</label>
+              <input className="form-input" type="number" min={0} value={collectionPointFee} onChange={(e) => setCollectionPointFee(e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">COD Label</label>
+              <input className="form-input" value={codLabel} onChange={(e) => setCodLabel(e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">Return Policy</label>
+              <input className="form-input" value={returnPolicy} onChange={(e) => setReturnPolicy(e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">Warranty Label</label>
+              <input className="form-input" value={warrantyLabel} onChange={(e) => setWarrantyLabel(e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">Seller Name</label>
+              <input className="form-input" value={sellerName} onChange={(e) => setSellerName(e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">Seller Rating %</label>
+              <input className="form-input" type="number" min={0} max={100} value={sellerRating} onChange={(e) => setSellerRating(e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">Ship On Time %</label>
+              <input className="form-input" type="number" min={0} max={100} value={shipOnTime} onChange={(e) => setShipOnTime(e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">Response Time</label>
+              <input className="form-input" value={responseTime} onChange={(e) => setResponseTime(e.target.value)} />
             </div>
           </div>
         </section>
